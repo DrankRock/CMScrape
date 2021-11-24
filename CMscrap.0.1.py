@@ -167,19 +167,28 @@ class PokeScraper():
 		return returnListe
 
 def MultiPokeScrapURL(args):
+	# -- Files Opening -- #
 	fileIn = open(args[0], 'r')
 	fileOut = open(args[1], 'w')
 	fileStat = ''
 	if len(args)==3 :
-		fileStat = open(args[2], 'a')
+		# if fileStat needs to be created, a separator is specified at the top of the file
+		if fileStat.is_file():
+			fileStat = open(args[2], 'a')
+			print("sep=,", file=fileStat)
+		else:
+			fileStat = open(args[2], 'a')
+	# Initialisation of OutputFile
 	print("sep=,",file=fileOut)
 	print("game,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,url", file=fileOut)
+	# -- Variable Initialisation -- #
 	Lines = fileIn.readlines()
 	nLines = len(Lines)
 	iterator = 1
 	minPrice = 0.0
 	trendPrice = 0.0
 	mean30Price = 0.0
+	# -- Looping through the URLs -- #
 	for line in Lines:
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
 		#print(f"{bcolors.OKBLUE}[{}/{}] scraping links...     {bcolors.ENDC}".format(iterator,nLines), end="\r", flush=True)
@@ -200,32 +209,57 @@ def MultiPokeScrapURL(args):
 		now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 		print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=fileStat)
 
+def csvSortFile(file):
+	## We shall ignore the first line because it's the sep=,
+	#[1:]
+	toSort = open(file, 'r')
+	separator=toSort.readline().rstrip()
+	toSortLines = toSort.read().splitlines()[1:]
+	toSortLines.sort()
+	toSort.close()
+
+	out = open(file, 'w')
+	print(separator, file=out)
+	for i in range(len(toSortLines)):
+		print(toSortLines[i], file=out)
+
+
 
 def main(argv):
 	# credit : https://www.tutorialspoint.com/python/python_command_line_arguments.htm
 	inputfile = ''
 	outputfile = ''
 	statfile=''
+	sortStat=False
+	sortOut=False
 	try:
 		opts, args = getopt.getopt(argv,"hi:o:s:",["ifile=","ofile=","stats="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
+
 	for opt, arg in opts:
 		if opt == '-h':
 			helpMe()
 			sys.exit()
-		elif opt in ("-i", "--ifile"):
+		elif opt in ("-i", "--infile"):
 			inputfile = arg
-		elif opt in ("-o", "--ofile"):
+		elif opt in ("-o", "--outfile"):
 			outputfile = arg
 		elif opt in ("-s", "--stats"):
 			statfile = arg
+
+	for opt in opts:
+		if opt in ("-ss", "--sort-stats"):
+			sortStat=True
+		elif opt in ("-so", "--sort-outfile"):
+			sortOut=True
+			
 	if outputfile == '':
 		outputfile = './pokeScraperOut.csv'
 	if inputfile == '':
 		print('An input is needed !')
-		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
+		print ('usage: CMscrap.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
 	print ('Input file is: ', inputfile)
 	print ('Output file is: ', outputfile)
