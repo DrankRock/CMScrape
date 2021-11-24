@@ -5,7 +5,7 @@ Created on Mon Nov 15 10:44:33 2021
 
 @author: mat
 """
-import requests, re, sys, getopt
+import requests, re, sys, getopt, os
 import os.path
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -166,18 +166,31 @@ class PokeScraper():
 		returnListe = out+self.paramliste
 		return returnListe
 
-def MultiPokeScrapURL(args):
+def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
+	#(String[] args, Bool fileOut, Bool fileStat, Bool sortOut)
 	# -- Files Opening -- #
 	fileIn = open(args[0], 'r')
-	fileOut = open(args[1], 'w')
-	fileStat = ''
-	if len(args)==3 :
-		# if fileStat needs to be created, a separator is specified at the top of the file
-		if fileStat.is_file():
+	#fileIn is necessary. It will always be here.
+	if isFileOut:
+		fileOut = open(args[1], 'w')
+	else:
+		#this line is necessary because i print a lot, and it's a pain in the ass to redirect everything
+		#with a lot of "if" when the user doesn't want output. That's easier.
+		#>Don't want to print? Just print to the nowhere!
+		fileOut = open(os.devnull, 'w')
+	if isFileStat:
+		if isFileOut:
+			indexOfStat=2
+		else:
+			indexOfStat=1
+
+		if args[indexOfStat].is_file():
+			fileStat = open(args[2], 'a')
+		else:
+			# if fileStat needs to be created, a separator is specified at the top of the file
 			fileStat = open(args[2], 'a')
 			print("sep=,", file=fileStat)
-		else:
-			fileStat = open(args[2], 'a')
+
 	# Initialisation of OutputFile
 	print("sep=,",file=fileOut)
 	print("game,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,url", file=fileOut)
@@ -230,8 +243,9 @@ def main(argv):
 	inputfile = ''
 	outputfile = ''
 	statfile=''
-	sortStat=False
 	sortOut=False
+	useOut=False
+	useStat=False
 	try:
 		opts, args = getopt.getopt(argv,"hi:o:s:",["ifile=","ofile=","stats="])
 	except getopt.GetoptError:
@@ -246,27 +260,27 @@ def main(argv):
 			inputfile = arg
 		elif opt in ("-o", "--outfile"):
 			outputfile = arg
+			useOut=True
 		elif opt in ("-s", "--stats"):
 			statfile = arg
+			useStat=True
 
 	for opt in opts:
-		if opt in ("-ss", "--sort-stats"):
-			sortStat=True
-		elif opt in ("-so", "--sort-outfile"):
+		if opt in ("-so", "--sort-outfile"):
 			sortOut=True
 			
-	if outputfile == '':
-		outputfile = './pokeScraperOut.csv'
 	if inputfile == '':
 		print('An input is needed !')
-		print ('usage: CMscrap.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
+		print ('Type "CMscrap.0.1.py --help" for more infos')
 		sys.exit(2)
-	print ('Input file is: ', inputfile)
-	print ('Output file is: ', outputfile)
-	args = [inputfile, outputfile]
+	#print ('Input file is: ', inputfile)
+	#print ('Output file is: ', outputfile)
+	args = [inputfile]
+	if outputfile != '':
+		args.append(outputfile)
 	if statfile != '':
 		args.append(statfile)
-	MultiPokeScrapURL(args)
+	MultiPokeScrapURL(args, useOut, useStat, sortOut)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
