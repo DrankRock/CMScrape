@@ -1,6 +1,8 @@
 # PokeScraper
 pokemon cards price tracker from cardmarket links
 
+**Please note that this project is in dev, readme isn't accurate !**
+
 ---
 ## Current state :
 This project is currently in developpment. It currently works if used in commande line. 
