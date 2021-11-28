@@ -1,50 +1,59 @@
 # PokeScraper
-pokemon cards price tracker from cardmarket links
-
-**Please note that this project is in dev, readme isn't accurate !**
+Collectibles price tracker from Cardmarket links.
 
 ---
 ## Current state :
-This project is currently in developpment. It currently works if used in commande line. 
-#### TODO :
-->Make it work for all types of cards from CardMarket (Yu-Gi-Oh, Magic, etc). 
+This project is currently in developpment. It works but was never intensly tested.
+If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
----
 ## Download :
-```
+```shell
 # clone the repo
-$ git clone https://github.com/DrankRock/PokeScraper.git
-# change the working directory to PokeScraper
-$ cd PokeScraper/
+$ git clone https://github.com/DrankRock/CMScrape.git
+# change the working directory to CMScrape
+$ cd CMScrape/
 # download required packages
 $ python -m pip install -r requirements.txt
 ```
----
+
 ## Usage :
-`python3 pokeScrap.0.1.py -i <inputFile> -o <outputFile> -s <statFile>`
+`python3 CMScrape.py <parameters>`
+
+*example :*
+`python3 CMScrape.py -i myGreatCollection.txt -o mySortedPricedCollection.csv -s someStats.csv -so`
+
 ### Parameters :
-***`-i or --input :`***
+***`-i, --input :`***
 
 Input file containing on each line a link to a cardmarket card. 
 
-***`-o or --output :`***
+***`-o, --output :`***
 
 Output file, preferably a .csv file because the output will be written in csv format. For each line from the inputfile will be written a line containing :
 
-`extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,url`
+`game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`
 
-***`-s or --stats :`***
+If no information is found concerning a parameter, 'None' will be indicated.
+
+
+***`-s, --stats :`***
 
 Statistics file, preferably a csv file because the output will be written in csv format. At the end of the execution will be appended a line containing :
 
 `current Time, sum of all the minimum prices, sum of all the trending prices, sum of all the "Mean 30 days" prices`
 
-***`-h or --help :`***
+***`-so, --sort-outfile :`***
 
+**/!\ this parameter takes no arguments**
+When this parameter is chosen, the output csv file, given in argument of the --output parameter, is sorted alphabetically. It works exclusively on output, because the stat file is already sorted in crescent date order.
+
+***`-h :`***
+
+**/!\ this parameter takes no arguments**
 Shows the help :
 ```
--- Pokemon CardMarket Scraper --
-usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>
+-- Python CardMarket Scraper --
+usage: CMScrape.py -i <input file or link> -o <outputfile> -s <statFile(optional)>
 Precisions about the results :
  _____________________
 |     minCondition    |
@@ -95,3 +104,11 @@ Precisions about the results :
 <ins>*linksStat.csv*</ins>
 
 ![picture alt](https://github.com/DrankRock/PokeScraper/blob/main/gitRessources/Screenshot%20from%202021-11-20%2019-05-50.png "linksStat.csv")
+
+## Exceptions :
+Be careful, this script doesn't work with everything buyable on CardMarket.
+Below is an example of a not working example, because it does not contain trend/mean prices. It's not a collectible, as opposed to the other version of the same kind of item below it.
+
+![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/doesntWork.png "doesntWorkExample")
+
+![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/works.png "workingExample")

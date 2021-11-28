@@ -19,26 +19,19 @@ from datetime import datetime
 #-##############################-#
 
 """
-PokeScraper is a scraping project with the objective to facilitate the use of CardMarket
-for Pokemon when tracking prices of single cards.
-Argument is either a link to a cardmarket page of a pokemon single card, or a file containing a bunch of https adresses.
-
-Output currently is a cvs format in the terminal, but tends to be inside a file.
-I will make it for a terminal use but will make a GUI for other users when I have the time.
-
-    Usage : python pokeScrap.O.1.py [link to cardmarket page of card] or [file containing links]
-
+CMScrape is a scraping project with the objective to facilitate the use of CardMarket
+when tracking prices of all kind of collectibles.
+Find a full documentation here :
+https://github.com/DrankRock/CMScrape
 """
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+COLOR = {
+    "HEADER": "\033[95m",
+    "BLUE": "\033[94m",
+    "GREEN": "\033[92m",
+    "RED": "\033[91m",
+    "ENDC": "\033[0m",
+    "BOLD": "\033[1m"
+}
 
 """
 	PokeScraper() is the main class
@@ -47,7 +40,7 @@ class bcolors:
 
 def helpMe():
 	print("-- CardMarket Scraper --")
-	print('usage: CMscrap.0.1.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
+	print('usage: CMscrape.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 	print("Precisions about the results :")
 	print(" _____________________")
 	print("|     minCondition    |")
@@ -114,6 +107,8 @@ class PokeScraper():
 		isPlayset = self.index_containing_substring(self.params, "isPlayset")
 		isAltered = self.index_containing_substring(self.params, "isAltered")
 		isReverseHolo = self.index_containing_substring(self.params, "isReverseHolo")
+		isFoil = self.index_containing_substring(self.params, "isFoil")
+		#isFoil=Y
 		# make use of singleParamScrap to update paramliste with only the values
 		singleParamScrap(language, "language")
 		singleParamScrap(sellerType, "sellerType")
@@ -123,6 +118,7 @@ class PokeScraper():
 		singleParamScrap(isPlayset, "isPlayset")
 		singleParamScrap(isAltered, "isAltered")
 		singleParamScrap(isReverseHolo, "isReverseHolo")
+		singleParamScrap(isFoil, "isFoil")
 		# No need of a return, we can use self.paramliste
 
 	def index_containing_substring(self, the_list, substring):
@@ -224,7 +220,7 @@ def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
 
 	# Initialisation of OutputFile
 	# print("sep=,",file=fileOut) #seems to do nothing..
-	print("game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,url", file=fileOut)
+	print("game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url", file=fileOut)
 	# -- Variable Initialisation -- #
 	Lines = fileIn.readlines()
 	nLines = len(Lines)
