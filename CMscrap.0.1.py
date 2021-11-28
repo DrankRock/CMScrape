@@ -113,6 +113,7 @@ class PokeScraper():
 		isFirstEd = self.index_containing_substring(self.params, "isFirstEd")
 		isPlayset = self.index_containing_substring(self.params, "isPlayset")
 		isAltered = self.index_containing_substring(self.params, "isAltered")
+		isReverseHolo = self.index_containing_substring(self.params, "isReverseHolo")
 		# make use of singleParamScrap to update paramliste with only the values
 		singleParamScrap(language, "language")
 		singleParamScrap(sellerType, "sellerType")
@@ -121,6 +122,7 @@ class PokeScraper():
 		singleParamScrap(isFirstEd, "isFirstEd")
 		singleParamScrap(isPlayset, "isPlayset")
 		singleParamScrap(isAltered, "isAltered")
+		singleParamScrap(isReverseHolo, "isReverseHolo")
 		# No need of a return, we can use self.paramliste
 
 	def index_containing_substring(self, the_list, substring):
@@ -130,37 +132,60 @@ class PokeScraper():
 	    return -1
 
 	def Main(self):
+		# Variables that are always the same
 		splitted_URL = self.url.split("/")
 		langage = splitted_URL[3]
 		jeu = splitted_URL[4]
-		extension_ref = splitted_URL[7]
-		name_ref = splitted_URL[8]
-		name_ref_split = name_ref.split("?")
+		item = splitted_URL[6]
+
+		page = requests.get(self.url)
+		soup = BeautifulSoup(page.content, "html.parser")
+		extension = 'None'
+		name_uncut = soup.find_all("div", class_="flex-grow-1")
+		name = re.search('><h1>(.*)<span', str(name_uncut))
+		name = name.group(1)
+		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
+		# print("Prices uncut before reduc : ",Prices_uncut) #DEBUG
+
+		if item=="Singles":
+			names_ref = splitted_URL[8]
+			extension_uncut = soup.find_all("a", class_="mb-2")
+			extension = re.search('">(.*)</a',str(extension_uncut))
+			extension = extension.group(1)
+			number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
+			# print("Number : {}".format(number)) #DEBUG
+			if number == []:
+				number = 'None'
+				Prices_uncut = Prices_uncut[4:]
+			else:
+				number = re.search('">(.*)<',str(number)).group(1)
+				Prices_uncut = Prices_uncut[5:]
+		else:
+			names_ref = splitted_URL[7]
+			extension = 'None'
+			number = 'None'
+			Prices_uncut = Prices_uncut[1:]
+
+		name_ref_split = names_ref.split("?")
 		if len(name_ref_split) == 1 :
 			self.params_ref = ''
 		else:
 			self.params_ref = name_ref_split[1]
-		name_ref = name_ref_split[0]
-		## About the name, I have two options, either replacing "," by something else ("-" ?)
-		# Or I can make every string as " 'hello world', 'somedata',.. "
-		# Second choice might be the most coherent.
-		page = requests.get(self.url)
-		soup = BeautifulSoup(page.content, "html.parser")
-		name_uncut = soup.find_all("div", class_="flex-grow-1")
-		name = re.search('><h1>(.*)<span', str(name_uncut))
-		name = name.group(1)
-		extension_uncut = soup.find_all("a", class_="mb-2")
-		extension = re.search('">(.*)</a',str(extension_uncut))
-		extension = extension.group(1)
-		number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
-		number = re.search('">(.*)<',str(number)).group(1)
-		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
-		Prices_uncut = Prices_uncut[5:]
+	
+		# print("Prices uncut : {}".format(Prices_uncut))
 		allPrices = []
-		for item in Prices_uncut:
-		    allPrices.append(re.search('>(\d.*€)<', str(item)).group(1))
+		for potential_price in Prices_uncut:
+			# print("Item : {}".format(str(potential_price)))
+			search = re.search('>(\d.*€)<', str(potential_price))
+			searchnone = re.search('>N/A<', str(potential_price))
+			# print("Search : {}\n Search N/A : {}".format(search, searchnone)) #DEBUG
+			if searchnone != None:
+				allPrices.append('None')
+			elif search != None:
+				allPrices.append(search.group(1))
 
-		out = [jeu, extension, number, name, allPrices[0].replace(",",".").replace("€",""), allPrices[1].replace(",",".").replace("€",""), allPrices[2].replace(",",".").replace("€","")]
+		# print("All Prices : {}".format(allPrices)) #DEBUG
+		out = [jeu, item, extension, number, name, allPrices[0].replace(".","").replace(",",".").replace("€",""), allPrices[1].replace(".","").replace(",",".").replace("€",""), allPrices[2].replace(".","").replace(",",".").replace("€","")]
 		self.paramScrap()
 		self.paramliste.append(self.url)
 		returnListe = out+self.paramliste
@@ -179,21 +204,27 @@ def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
 		#>Don't want to print? Just print to the nowhere!
 		fileOut = open(os.devnull, 'w')
 	if isFileStat:
+		# if there is a stat file
 		if isFileOut:
+			# if there is an outfile, it is appended first in args, so args[1] is out and args[2] is stat
 			indexOfStat=2
 		else:
+			# else, args[1] is stat and out is nowhere.
 			indexOfStat=1
-
-		if args[indexOfStat].is_file():
-			fileStat = open(args[2], 'a')
-		else:
+		# if the string containing the name of the file exists
+		try:
+			# if the file exists, this will work, else it throws an error
+			size = os.path.getsize(args[indexOfStat])
+			fileStat = open(args[indexOfStat], 'a')
+		except:
+			# catch the error (please note that this is a shitty way to solve the problem.)
 			# if fileStat needs to be created, a separator is specified at the top of the file
-			fileStat = open(args[2], 'a')
-			print("sep=,", file=fileStat)
+			fileStat = open(args[indexOfStat], 'a')
+			# print("sep=,", file=fileStat)
 
 	# Initialisation of OutputFile
-	print("sep=,",file=fileOut)
-	print("game,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,url", file=fileOut)
+	# print("sep=,",file=fileOut) #seems to do nothing..
+	print("game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,url", file=fileOut)
 	# -- Variable Initialisation -- #
 	Lines = fileIn.readlines()
 	nLines = len(Lines)
@@ -204,21 +235,24 @@ def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
 	# -- Looping through the URLs -- #
 	for line in Lines:
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
-		#print(f"{bcolors.OKBLUE}[{}/{}] scraping links...     {bcolors.ENDC}".format(iterator,nLines), end="\r", flush=True)
 		currentline = str(line.strip())
 		pk = PokeScraper(currentline)
 		pkm = pk.Main()
-		minPrice+=float(pkm[4])
-		trendPrice+=float(pkm[5])
-		mean30Price+=float(pkm[6])
+		if pkm[5] != 'None':
+			minPrice+=float(pkm[5])
+		if pkm[6] != 'None':
+			trendPrice+=float(pkm[6])
+		if pkm[7] != 'None':
+			mean30Price+=float(pkm[7])
 		for i in range(len(pkm)):
 			pkm[i] = "\"{}\"".format(str(pkm[i]))
 		print(', '.join(pkm), file=fileOut)
 		iterator+=1
+	print("[{}] links successfully scraped.".format(nLines))
 	nLinesp1=nLines+1
 	print("Total Min Price = {}\nTotal Trend Price = {}\nTotal Mean Price = {}".format(minPrice, trendPrice, mean30Price))
 	print(",Number of Cards:,{},Total Prices:,{},{},{},,,,,,,,".format(nLines,minPrice,trendPrice,mean30Price), file=fileOut)
-	if fileStat != '':
+	if isFileStat==True:
 		now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 		print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=fileStat)
 
@@ -226,13 +260,13 @@ def csvSortFile(file):
 	## We shall ignore the first line because it's the sep=,
 	#[1:]
 	toSort = open(file, 'r')
-	separator=toSort.readline().rstrip()
-	toSortLines = toSort.read().splitlines()[1:]
+	# separator=toSort.readline().rstrip()
+	toSortLines = toSort.read().splitlines()
 	toSortLines.sort()
 	toSort.close()
 
 	out = open(file, 'w')
-	print(separator, file=out)
+	# print(separator, file=out)
 	for i in range(len(toSortLines)):
 		print(toSortLines[i], file=out)
 
