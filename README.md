@@ -1,4 +1,4 @@
-# PokeScraper
+# CMScrape
 Collectibles price tracker from Cardmarket links.
 
 ---
