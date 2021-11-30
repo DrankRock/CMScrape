@@ -9,13 +9,15 @@ import requests, re, sys, getopt, os
 import os.path
 from bs4 import BeautifulSoup
 from datetime import datetime
+from graphicCMS import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 #-##############################-#
 # ---------- ✖︎ TODO ✔︎ -----------#
-#  		✖︎ - Finish the PyDoc	 #
-#		✖︎ - Make a GUI			 #
-#		✖︎ - Manage Exceptions    #
-#		✖︎ - Do the Git Doc       #
-#		✖︎ - Add tools to track $ #
+#  	✖︎ - Finish the PyDoc	 		#
+#		✖︎ - Make a GUI			 		#
+#		✖︎ - Manage Exceptions   	#
+#		✖︎ - Multi Threading	   	#
 #-##############################-#
 
 """
@@ -32,11 +34,6 @@ COLOR = {
     "ENDC": "\033[0m",
     "BOLD": "\033[1m"
 }
-
-"""
-	PokeScraper() is the main class
-	:param url: the url of the card to scrape
-"""
 
 def helpMe():
 	print("-- CardMarket Scraper --")
@@ -73,7 +70,9 @@ def helpMe():
 	print("| 15   = Hungarian    |")
 	print("|_____________________|")
 
-class PokeScraper():
+#=############################################################=#
+# ---------------------- SINGLE SCRAPER ---------------------- #
+class SingleScraper():
 	def __init__(self, url):
 		self.url = url
 
@@ -187,7 +186,10 @@ class PokeScraper():
 		returnListe = out+self.paramliste
 		return returnListe
 
-def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
+#=############################################################=#
+# ---------------------- MULTI SCRAPER ----------------------- #
+
+def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 	#(String[] args, Bool fileOut, Bool fileStat, Bool sortOut)
 	# -- Files Opening -- #
 	fileIn = open(args[0], 'r')
@@ -230,9 +232,12 @@ def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
 	mean30Price = 0.0
 	# -- Looping through the URLs -- #
 	for line in Lines:
+		if isGraphic:
+			perc = iterator*100/nLines
+			graphicUI.progressBar.setValue(perc)
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
 		currentline = str(line.strip())
-		pk = PokeScraper(currentline)
+		pk = SingleScraper(currentline)
 		pkm = pk.Main()
 		if pkm[5] != 'None':
 			minPrice+=float(pkm[5])
@@ -252,6 +257,9 @@ def MultiPokeScrapURL(args, isFileOut, isFileStat, isSortOut):
 		now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 		print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=fileStat)
 
+#=############################################################=#
+# ---------------------- CSV SORT FILE ----------------------- #
+
 def csvSortFile(file):
 	## We shall ignore the first line because it's the sep=,
 	#[1:]
@@ -266,7 +274,83 @@ def csvSortFile(file):
 	for i in range(len(toSortLines)):
 		print(toSortLines[i], file=out)
 
+#=############################################################=#
+# ------------------------ MAIN WINDOW ----------------------- #
 
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+	def __init__(self, parent=None):
+		QtWidgets.QMainWindow.__init__(self, parent)
+		self.setupUi(self)
+		self.inputBtn.clicked.connect(self.inputFileDialog)
+		self.statBtn.clicked.connect(self.statFileDialog)
+		self.outputBtn.clicked.connect(self.outputFileDialog)
+		self.runBtn.clicked.connect(self.run)
+
+	def inputFileDialog(self):
+		self.fileDialog = QFileDialog()
+		options = self.fileDialog.Options()
+		options |= self.fileDialog.DontUseNativeDialog
+		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
+		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
+		fileName, _ = self.fileDialog.getOpenFileName(self,"Chose desired input file","","All Files (*);;Text Files (*.txt)", options=options)
+		if fileName:
+			# print(fileName)
+			self.inputFileChosen = fileName
+			self.chosenFileLbl.setText(str(fileName))
+			self.chosenFileLbl.adjustSize()
+
+	def outputFileDialog(self):
+		self.fileDialog = QFileDialog()
+		options = self.fileDialog.Options()
+		options |= self.fileDialog.DontUseNativeDialog
+		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
+		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired output file","","All Files (*);;Text Files (*.txt)", options=options)
+		if fileName:
+			# print(fileName)
+			self.outputFileChosen = fileName
+			self.chosenOutLbl.setText(str(fileName))
+			self.chosenOutLbl.adjustSize()
+
+	def statFileDialog(self):
+		self.fileDialog = QFileDialog()
+		options = self.fileDialog.Options()
+		options |= self.fileDialog.DontUseNativeDialog
+		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
+		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired statistics file","","All Files (*);;Text Files (*.txt)", options=options)
+		if fileName:
+			# print(fileName)
+			self.statFileChosen = fileName
+			self.chosenStatLbl.setText(str(fileName))
+			self.chosenStatLbl.adjustSize()
+
+	def run(self):
+
+		if self.chosenFileLbl.text() == "No file chosen":
+			print("Error : no input file was chosen.")
+		else:
+			isOut=False
+			isStat=False
+			args=[self.chosenFileLbl.text()]
+			if self.chosenOutLbl.text() != "No file chosen":
+				isOut=True;
+				args.append(self.chosenOutLbl.text())
+			if self.chosenStatLbl.text() != "No file chosen":
+				isStat=True;
+				args.append(self.chosenStatLbl.text())
+			print("Running ...")
+			MultiScrap(args, isOut, isStat, False, True, self)
+
+
+def graphic():
+	app = QtWidgets.QApplication(sys.argv)
+	main = MainWindow()
+	main.show()
+	sys.exit(app.exec_())
+
+#=############################################################=#
+# --------------------------- MAIN --------------------------- #
 
 def main(argv):
 	# credit : https://www.tutorialspoint.com/python/python_command_line_arguments.htm
@@ -276,13 +360,17 @@ def main(argv):
 	sortOut=False
 	useOut=False
 	useStat=False
+	grahicLaunch=False
 	try:
-		opts, args = getopt.getopt(argv,"hi:o:s:",["ifile=","ofile=","stats="])
+		opts, args = getopt.getopt(argv,"ghi:o:s:",["ifile=","ofile=","stats="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
 
 	for opt, arg in opts:
+		if opt == '-g':
+			print("Launch graphic version...")
+			grahicLaunch=True
 		if opt == '-h':
 			helpMe()
 			sys.exit()
@@ -299,9 +387,9 @@ def main(argv):
 		if opt in ("-so", "--sort-outfile"):
 			sortOut=True
 			
-	if inputfile == '':
+	if inputfile == '' and grahicLaunch == False:
 		print('An input is needed !')
-		print ('Type "CMscrap.0.1.py --help" for more infos')
+		print ('Type "CMscrap.0.1.py -h" for more infos')
 		sys.exit(2)
 	#print ('Input file is: ', inputfile)
 	#print ('Output file is: ', outputfile)
@@ -310,7 +398,10 @@ def main(argv):
 		args.append(outputfile)
 	if statfile != '':
 		args.append(statfile)
-	MultiPokeScrapURL(args, useOut, useStat, sortOut)
+	if grahicLaunch:
+		graphic()
+	else:
+		MultiScrap(args, useOut, useStat, sortOut, grahicLaunch)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
