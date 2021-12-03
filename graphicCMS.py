@@ -87,6 +87,26 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.progressBar)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.consoleLayout = QtWidgets.QVBoxLayout()
+        self.consoleLayout.setObjectName("consoleLayout")
+        self.consoleLbl = QtWidgets.QLabel(self.centralwidget)
+        self.consoleLbl.setMinimumSize(QtCore.QSize(101, 16))
+        self.consoleLbl.setStyleSheet("background-color: rgb(47, 66, 68);\n"
+"color: rgb(231, 231, 231);\n"
+"border-color: rgb(47, 47, 47);")
+        self.consoleLbl.setAlignment(QtCore.Qt.AlignCenter)
+        self.consoleLbl.setObjectName("consoleLbl")
+        self.consoleLayout.addWidget(self.consoleLbl)
+        self.consoleDisp = QtWidgets.QTextEdit(self.centralwidget)
+        self.consoleDisp.setMinimumSize(QtCore.QSize(339, 113))
+        self.consoleDisp.setSizeIncrement(QtCore.QSize(3, 1))
+        self.consoleDisp.setStyleSheet("color: rgb(38, 209, 0);\n"
+"border-color: rgb(71, 71, 71);\n"
+"background-color: rgb(0, 0, 0);")
+        self.consoleDisp.setReadOnly(True)
+        self.consoleDisp.setObjectName("consoleDisp")
+        self.consoleLayout.addWidget(self.consoleDisp)
+        self.gridLayout.addLayout(self.consoleLayout, 1, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.actionHello = QtWidgets.QAction(MainWindow)
         self.actionHello.setObjectName("actionHello")
@@ -105,6 +125,7 @@ class Ui_MainWindow(object):
         self.chosenStatLbl.setText(_translate("MainWindow", "No file chosen"))
         self.chosenOutLbl.setText(_translate("MainWindow", "No file chosen"))
         self.actionHello.setText(_translate("MainWindow", "Hello"))
+        self.consoleLbl.setText(_translate("MainWindow", "Console output :"))
 
 
 if __name__ == "__main__":
@@ -113,5 +134,9 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    ui.consoleDisp.setText("Hello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\n")
+    # ## What should be done is putting only the \r'd text in the console, rewriting it, and append the errors I could
+    # ## in the begining or end of string, to be shown if user wants to.
+    # ## maybe yet another argument "-se, --show-errors" that would work in cmd and
     MainWindow.show()
     sys.exit(app.exec_())

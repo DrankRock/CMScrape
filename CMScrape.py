@@ -15,7 +15,8 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 #-##############################-#
 # ---------- ✖︎ TODO ✔︎ -----------#
 #  	✖︎ - Finish the PyDoc	 		#
-#		✖︎ - Make a GUI			 		#
+#		✔︎ - Make a GUI			 		#
+#		✖︎ - GUI Console show	 		#
 #		✖︎ - Manage Exceptions   	#
 #		✖︎ - Multi Threading	   	#
 #-##############################-#
