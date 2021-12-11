@@ -6,6 +6,18 @@ Collectibles price tracker from Cardmarket links.
 This project is currently in developpment. It works but was never intensly tested.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
+Note : this project was developped on Ubuntu 16.04. If you face any issue witht he execution, please let me know.
+
+## Current preoccupations :
+I am currently trying to make the best possible GUI using PyQt5. I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
+
+## TODO :
+Add MultiThreading
+Improve the wobbly console output in the -g version
+Find testers to have some feedback
+Add a tool to create the list, using CM's database to add full expansions, search by names etc
+Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)
+
 ## Download :
 ```shell
 # clone the repo
@@ -18,6 +30,7 @@ $ python -m pip install -r requirements.txt
 
 ## Usage :
 `python3 CMScrape.py <parameters>`
+By default, CMScrape will be launched in a new Application window, as it's more user-friendly. You can still use the `-t` options to launch the app in the terminal.
 
 *example :*
 `python3 CMScrape.py -i myGreatCollection.txt -o mySortedPricedCollection.csv -s someStats.csv -so`
@@ -46,6 +59,18 @@ Statistics file, preferably a csv file because the output will be written in csv
 
 **/!\ this parameter takes no arguments**
 When this parameter is chosen, the output csv file, given in argument of the --output parameter, is sorted alphabetically. It works exclusively on output, because the stat file is already sorted in crescent date order.
+
+***`-g, --graphic :`***
+
+**/!\ this parameter takes no arguments**
+Executes CMScrape in an interactive application.
+
+
+***`-t, --terminal :`***
+
+**/!\ this parameter takes no arguments**
+Executes CMScrape in the terminal (without graphic application)
+
 
 ***`-h :`***
 
