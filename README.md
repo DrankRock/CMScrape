@@ -6,7 +6,7 @@ Collectibles price tracker from Cardmarket links.
 This tool aims to **gain time** when checking a collection's price on CardMarket.  
 The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt). Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.  
 The DBScrape part is currently not working. In Fine, I want it to scrape CardMarket as a whole to get all the cards in links, as  
-"Name, Expansion, URL"  
+`"Name, Expansion, URL"`  
 Or something similar.  
 
 #### About the prices.  
