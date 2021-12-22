@@ -134,6 +134,8 @@ Precisions about the results :
 Be careful, this script doesn't work with everything buyable on CardMarket.
 Below is an example of a not working example, because it does not contain trend/mean prices. It's not a collectible, as opposed to the other version of the same kind of item below it.
 
+#### This doesn't work
 ![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/doesntWork.png "doesntWorkExample")
 
+#### This works
 ![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/works.png "workingExample")
