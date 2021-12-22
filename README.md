@@ -10,9 +10,9 @@ The DBScrape part is currently not working. In Fine, I want it to scrape CardMar
 Or something similar.  
 
 #### About the prices.  
-MinPrice is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.  
-Mean30 is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.  
-TrendPrice is the trending price.  
+*MinPrice* is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.  
+*Mean30* is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.  
+*TrendPrice* is the trending price.  
 Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
 You will find below an example of the execution with the latest version.  
 
