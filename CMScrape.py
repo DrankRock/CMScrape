@@ -11,7 +11,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from graphicCMS import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QMessageBox, QApplication
+
 #-##############################-#
 # ---------- ✖︎ TODO ✔︎ -----------#
 #  	✖︎ - Finish the PyDoc	 		#
@@ -19,6 +20,9 @@ from PyQt5.QtWidgets import QFileDialog, QMessageBox
 #		✖︎ - GUI Console show	 		#
 #		✖︎ - Manage Exceptions   	#
 #		✖︎ - Multi Threading	   	#
+#		✖︎ - Remove console 			#
+#		✖︎ - Cancel Button				#
+#		✖︎ - Icon							#
 #-##############################-#
 
 """
@@ -136,6 +140,10 @@ class SingleScraper():
 
 		page = requests.get(self.url)
 		soup = BeautifulSoup(page.content, "html.parser")
+		title = soup.find('title')
+		if "Maintenance | Cardmarket" in str(title):
+			print("CardMarket is currently under Maintenance. Please try again later.")
+			sys.exit(1)
 		extension = 'None'
 		name_uncut = soup.find_all("div", class_="flex-grow-1")
 		name = re.search('><h1>(.*)<span', str(name_uncut))
@@ -208,7 +216,7 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 			# if there is an outfile, it is appended first in args, so args[1] is out and args[2] is stat
 			indexOfStat=2
 		else:
-			# else, args[1] is stat and out is nowhere.
+			# else, args[1] is stat and out is nowhttps://github.com/topics/rhere.
 			indexOfStat=1
 		# if the string containing the name of the file exists
 		try:
@@ -233,22 +241,28 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 	mean30Price = 0.0
 	# -- Looping through the URLs -- #
 	for line in Lines:
+		text = "[{}/{}] scraping links...     \nScraping : {}".format(iterator,nLines,line)
 		if isGraphic:
 			perc = iterator*100/nLines
 			graphicUI.progressBar.setValue(perc)
+			graphicUI.consoleDisp.setText(text)
+			QApplication.processEvents()
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
 		currentline = str(line.strip())
-		pk = SingleScraper(currentline)
-		pkm = pk.Main()
-		if pkm[5] != 'None':
-			minPrice+=float(pkm[5])
-		if pkm[6] != 'None':
-			trendPrice+=float(pkm[6])
-		if pkm[7] != 'None':
-			mean30Price+=float(pkm[7])
-		for i in range(len(pkm)):
-			pkm[i] = "\"{}\"".format(str(pkm[i]))
-		print(', '.join(pkm), file=fileOut)
+		try:
+			pk = SingleScraper(currentline)
+			pkm = pk.Main()
+			if pkm[5] != 'None':
+				minPrice+=float(pkm[5])
+			if pkm[6] != 'None':
+				trendPrice+=float(pkm[6])
+			if pkm[7] != 'None':
+				mean30Price+=float(pkm[7])
+			for i in range(len(pkm)):
+				pkm[i] = "\"{}\"".format(str(pkm[i]))
+			print(', '.join(pkm), file=fileOut)
+		except:
+			print("Couldn't scrape link : {}".format(currentline))
 		iterator+=1
 	print("[{}] links successfully scraped.".format(nLines))
 	nLinesp1=nLines+1
@@ -361,9 +375,10 @@ def main(argv):
 	sortOut=False
 	useOut=False
 	useStat=False
-	grahicLaunch=False
+	grahicLaunch=True #default mode
+	termLaunch=False
 	try:
-		opts, args = getopt.getopt(argv,"ghi:o:s:",["ifile=","ofile=","stats="])
+		opts, args = getopt.getopt(argv,"ghit:o:s:",["ifile=","ofile=","stats="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
@@ -372,6 +387,9 @@ def main(argv):
 		if opt == '-g':
 			print("Launch graphic version...")
 			grahicLaunch=True
+		if opt == '-t':
+			print("Launch Terminal version")
+			termLaunch=True
 		if opt == '-h':
 			helpMe()
 			sys.exit()
@@ -399,10 +417,10 @@ def main(argv):
 		args.append(outputfile)
 	if statfile != '':
 		args.append(statfile)
-	if grahicLaunch:
-		graphic()
-	else:
+	if termLaunch:
 		MultiScrap(args, useOut, useStat, sortOut, grahicLaunch)
+	else:
+		graphic()
 
 if __name__ == "__main__":
    main(sys.argv[1:])

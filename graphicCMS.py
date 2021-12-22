@@ -116,7 +116,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CMScrape - CardMarket Price Tracker"))
         self.inputBtn.setText(_translate("MainWindow", "Chose Input File"))
         self.statBtn.setText(_translate("MainWindow", "Chose Statistics File"))
         self.outputBtn.setText(_translate("MainWindow", "Chose Output File"))
@@ -134,7 +134,6 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
-    ui.consoleDisp.setText("Hello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\nHello World ! \n I love dogs!\n xoxo\n")
     # ## What should be done is putting only the \r'd text in the console, rewriting it, and append the errors I could
     # ## in the begining or end of string, to be shown if user wants to.
     # ## maybe yet another argument "-se, --show-errors" that would work in cmd and
