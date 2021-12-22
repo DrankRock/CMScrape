@@ -1,6 +1,5 @@
 # Various files #
 ################
-*.txt
 *.csv
 *.csv#
 test*.py
