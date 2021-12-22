@@ -117,9 +117,9 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "CMScrape - CardMarket Price Tracker"))
-        self.inputBtn.setText(_translate("MainWindow", "Chose Input File"))
-        self.statBtn.setText(_translate("MainWindow", "Chose Statistics File"))
-        self.outputBtn.setText(_translate("MainWindow", "Chose Output File"))
+        self.inputBtn.setText(_translate("MainWindow", "Choose Input File"))
+        self.statBtn.setText(_translate("MainWindow", "Choose Statistics File"))
+        self.outputBtn.setText(_translate("MainWindow", "Choose Output File"))
         self.runBtn.setText(_translate("MainWindow", "Run"))
         self.chosenFileLbl.setText(_translate("MainWindow", "No file chosen"))
         self.chosenStatLbl.setText(_translate("MainWindow", "No file chosen"))

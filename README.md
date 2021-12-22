@@ -2,6 +2,19 @@
 Collectibles price tracker from Cardmarket links.
 
 ---
+## README
+This tool aims to gain time when checking a collection's price on CardMarket. The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt). Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.
+The DBScrape part is currently not working. In Fine, I want it to scrape CardMarket as a whole to get all the cards in links, as 
+"Name, Expansion, URL"
+Or something similar.
+
+#### About the prices. 
+MinPrice is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.
+Mean30 is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.
+TrendPrice is the trending price.
+Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing. 
+You will find below an example of the execution with the latest version.
+
 ## Current state :
 This project is currently in developpment. It works but was never intensly tested.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
@@ -58,23 +71,27 @@ Statistics file, preferably a csv file because the output will be written in csv
 ***`-so, --sort-outfile :`***
 
 **/!\ this parameter takes no arguments**
+
 When this parameter is chosen, the output csv file, given in argument of the --output parameter, is sorted alphabetically. It works exclusively on output, because the stat file is already sorted in crescent date order.
 
 ***`-g, --graphic :`***
 
 **/!\ this parameter takes no arguments**
+
 Executes CMScrape in an interactive application.
 
 
 ***`-t, --terminal :`***
 
 **/!\ this parameter takes no arguments**
+
 Executes CMScrape in the terminal (without graphic application)
 
 
 ***`-h :`***
 
 **/!\ this parameter takes no arguments**
+
 Shows the help :
 ```
 -- Python CardMarket Scraper --
