@@ -28,11 +28,10 @@ Note : this project was developped on Ubuntu 16.04. If you face any issue witht 
 I am currently trying to make the best possible GUI using PyQt5. I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
 
 ## TODO :
-Add MultiThreading
-Improve the wobbly console output in the -g version
-Find testers to have some feedback
-Add a tool to create the list, using CM's database to add full expansions, search by names etc
-Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)
+Add MultiThreading  
+Find testers to have some feedback  
+Add a tool to create the list, using CM's database to add full expansions, search by names etc  
+Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)  
 
 ## Download :
 ```shell
