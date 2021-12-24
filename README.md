@@ -14,7 +14,7 @@ Or something similar.
 *Mean30* is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.  
 *TrendPrice* is the trending price.  
 Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
-You will find below an example of the execution with the latest version.  
+You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://www.youtube.com/watch?v=3Wjy0_205oI).
 
 ![Demo](.github/images/CMScrape_Demo.gif)
 
