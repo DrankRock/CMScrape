@@ -16,7 +16,7 @@ Or something similar.
 Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
 You will find below an example of the execution with the latest version.  
 
-https://github.com/DrankRock/CMScrape/blob/fbb0c9f811c3ddf59356d3a2ee0841b9960572be/gitRessources/CMScrape_Demo.mp4
+![Demo](.github/images/CMScrape_Demo.gif)
 
 ## Current state :
 This project is currently in developpment. It works but was never intensly tested.
