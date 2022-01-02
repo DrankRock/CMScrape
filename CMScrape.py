@@ -5,7 +5,7 @@ Created on Mon Nov 15 10:44:33 2021
 
 @author: mat
 """
-import requests, re, sys, getopt, os
+import requests, re, sys, getopt, os, traceback
 import os.path
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -149,8 +149,11 @@ class SingleScraper():
 		name_uncut = soup.find_all("div", class_="flex-grow-1")
 		name = re.search('><h1>(.*)<span', str(name_uncut))
 		name = name.group(1)
+		name = name.replace('"','""')
 		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
-		# print("Prices uncut before reduc : ",Prices_uncut) #DEBUG
+		# print("Prices uncut : ",Prices_uncut) #DEBUG
+		Prices_uncut = Prices_uncut[-5:]
+
 		#if we are seeing cards
 		if item=="Singles":
 			names_ref = splitted_URL[8]
@@ -159,34 +162,17 @@ class SingleScraper():
 			extension = extension.group(1)
 			number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
 			# print("Number : {}".format(number)) #DEBUG
-			if jeu == "Pokemon":
-				number = re.search('">(.*)<',str(number)).group(1)
-				Prices_uncut = Prices_uncut[5:]
-				# Pokemon works differently because there is a "specie" category
-			elif number == []:
-				# if there is no card number
-				#  I honestly don't know why I added this, but I'll let it stay until I debug more
+			if number == []:
 				number = 'None'
-				Prices_uncut = Prices_uncut[4:]
 			else:
 				number = re.search('">(.*)<',str(number)).group(1)
-				Prices_uncut = Prices_uncut[4:]
-				# Works for Yugioh and Magic at least.
+			# print("1d:{} - 7d:{} - 30d:{} - trend:{} - from:{}".format(Prices_uncut[pULength-1],Prices_uncut[pULength-2],Prices_uncut[pULength-3],Prices_uncut[pULength-4],Prices_uncut[pULength-5]))
 		else:
 			# if the item is not a single card
-			# This might not work on none-pokemon items.
 			names_ref = splitted_URL[7]
 			extension = 'None'
 			number = 'None'
-			Prices_uncut = Prices_uncut[1:]
 
-		name_ref_split = names_ref.split("?")
-		if len(name_ref_split) == 1 :
-			self.params_ref = ''
-		else:
-			self.params_ref = name_ref_split[1]
-	
-		# print("Prices uncut : {}".format(Prices_uncut)) #DEBUG
 		allPrices = []
 		for potential_price in Prices_uncut:
 			# print("Item : {}".format(str(potential_price)))
@@ -197,6 +183,14 @@ class SingleScraper():
 				allPrices.append('None')
 			elif search != None:
 				allPrices.append(search.group(1))
+
+		name_ref_split = names_ref.split("?")
+		if len(name_ref_split) == 1 :
+			self.params_ref = ''
+		else:
+			self.params_ref = name_ref_split[1]
+	
+		# print("Prices uncut : {}".format(Prices_uncut)) #DEBUG
 
 		# print("All Prices : {}".format(allPrices)) #DEBUG
 		out = [jeu, item, extension, number, name, allPrices[0].replace(".","").replace(",",".").replace("€",""), allPrices[1].replace(".","").replace(",",".").replace("€",""), allPrices[2].replace(".","").replace(",",".").replace("€","")]
@@ -275,8 +269,9 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 			#	scrapes[i] = "\"{}\"".format(str(scrapes[i]))
 			scrapes[4] = "\"{}\"".format(str(scrapes[4])) # Do it only for the name.
 			print(', '.join(scrapes), file=fileOut)
-		except:
-			print("Couldn't scrape link : {}".format(currentline))
+		except Exception:
+			traceback.print_exc()
+			#print("Couldn't scrape link : {} -- Error:\n{}".format(currentline,e))
 		iterator+=1
 	print("[{}] links successfully scraped.".format(nLines))
 	nLinesp1=nLines+1
