@@ -99,6 +99,7 @@ class SingleScraper():
 			else:
 				content = 'None'
 				self.paramliste.append(content)
+
 		# get the list of all the parameters in the url
 		self.params = self.params_ref.split("&")
 		self.paramliste = []
@@ -150,7 +151,7 @@ class SingleScraper():
 		name = name.group(1)
 		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
 		# print("Prices uncut before reduc : ",Prices_uncut) #DEBUG
-
+		#if we are seeing cards
 		if item=="Singles":
 			names_ref = splitted_URL[8]
 			extension_uncut = soup.find_all("a", class_="mb-2")
@@ -158,13 +159,22 @@ class SingleScraper():
 			extension = extension.group(1)
 			number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
 			# print("Number : {}".format(number)) #DEBUG
-			if number == []:
+			if jeu == "Pokemon":
+				number = re.search('">(.*)<',str(number)).group(1)
+				Prices_uncut = Prices_uncut[5:]
+				# Pokemon works differently because there is a "specie" category
+			elif number == []:
+				# if there is no card number
+				#  I honestly don't know why I added this, but I'll let it stay until I debug more
 				number = 'None'
 				Prices_uncut = Prices_uncut[4:]
 			else:
 				number = re.search('">(.*)<',str(number)).group(1)
-				Prices_uncut = Prices_uncut[5:]
+				Prices_uncut = Prices_uncut[4:]
+				# Works for Yugioh and Magic at least.
 		else:
+			# if the item is not a single card
+			# This might not work on none-pokemon items.
 			names_ref = splitted_URL[7]
 			extension = 'None'
 			number = 'None'
@@ -176,7 +186,7 @@ class SingleScraper():
 		else:
 			self.params_ref = name_ref_split[1]
 	
-		# print("Prices uncut : {}".format(Prices_uncut))
+		# print("Prices uncut : {}".format(Prices_uncut)) #DEBUG
 		allPrices = []
 		for potential_price in Prices_uncut:
 			# print("Item : {}".format(str(potential_price)))
@@ -191,8 +201,10 @@ class SingleScraper():
 		# print("All Prices : {}".format(allPrices)) #DEBUG
 		out = [jeu, item, extension, number, name, allPrices[0].replace(".","").replace(",",".").replace("€",""), allPrices[1].replace(".","").replace(",",".").replace("€",""), allPrices[2].replace(".","").replace(",",".").replace("€","")]
 		self.paramScrap()
-		self.paramliste.append(self.url)
+		self.paramliste.append('"{}"'.format(self.url))
 		returnListe = out+self.paramliste
+		# print("return list : {}".format(returnListe)) #DEBUG
+		# Returns a normal list. The objects within the list might contain unwanted ",", especially in the name area.
 		return returnListe
 
 #=############################################################=#
@@ -250,24 +262,26 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
 		currentline = str(line.strip())
 		try:
-			pk = SingleScraper(currentline)
-			pkm = pk.Main()
-			if pkm[5] != 'None':
-				minPrice+=float(pkm[5])
-			if pkm[6] != 'None':
-				trendPrice+=float(pkm[6])
-			if pkm[7] != 'None':
-				mean30Price+=float(pkm[7])
-			for i in range(len(pkm)):
-				pkm[i] = "\"{}\"".format(str(pkm[i]))
-			print(', '.join(pkm), file=fileOut)
+			singScrap = SingleScraper(currentline)
+			scrapes = singScrap.Main()
+			if scrapes[5] != 'None':
+				minPrice+=float(scrapes[5])
+			if scrapes[6] != 'None':
+				trendPrice+=float(scrapes[6])
+			if scrapes[7] != 'None':
+				mean30Price+=float(scrapes[7])
+			# For loop adding \" \" around each item. Might be necessary only for the name, in case of it containing a ','.
+			#for i in range(len(scrapes)):
+			#	scrapes[i] = "\"{}\"".format(str(scrapes[i]))
+			scrapes[4] = "\"{}\"".format(str(scrapes[4])) # Do it only for the name.
+			print(', '.join(scrapes), file=fileOut)
 		except:
 			print("Couldn't scrape link : {}".format(currentline))
 		iterator+=1
 	print("[{}] links successfully scraped.".format(nLines))
 	nLinesp1=nLines+1
 	print("Total Min Price = {}\nTotal Trend Price = {}\nTotal Mean Price = {}".format(minPrice, trendPrice, mean30Price))
-	print(",Number of Cards:,{},Total Prices:,{},{},{},,,,,,,,".format(nLines,minPrice,trendPrice,mean30Price), file=fileOut)
+	print(",,Number of Cards:,{},Total Prices:,{},{},{}".format(nLines,minPrice,trendPrice,mean30Price), file=fileOut)
 	if isFileStat==True:
 		now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 		print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=fileStat)
@@ -408,7 +422,7 @@ def main(argv):
 			
 	if inputfile == '' and grahicLaunch == False:
 		print('An input is needed !')
-		print ('Type "CMscrap.0.1.py -h" for more infos')
+		print ('Type "CMscrapepy -h" for more infos')
 		sys.exit(2)
 	#print ('Input file is: ', inputfile)
 	#print ('Output file is: ', outputfile)
