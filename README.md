@@ -14,9 +14,9 @@ Or something similar.
 *Mean30* is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.  
 *TrendPrice* is the trending price.  
 Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
-You will find below an example of the execution with the latest version.  
+You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://www.youtube.com/watch?v=3Wjy0_205oI).
 
-https://github.com/DrankRock/CMScrape/blob/fbb0c9f811c3ddf59356d3a2ee0841b9960572be/gitRessources/CMScrape_Demo.mp4
+![Demo](.github/images/CMScrape_Demo.gif)
 
 ## Current state :
 This project is currently in developpment. It works but was never intensly tested.
@@ -28,11 +28,10 @@ Note : this project was developped on Ubuntu 16.04. If you face any issue witht 
 I am currently trying to make the best possible GUI using PyQt5. I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
 
 ## TODO :
-Add MultiThreading
-Improve the wobbly console output in the -g version
-Find testers to have some feedback
-Add a tool to create the list, using CM's database to add full expansions, search by names etc
-Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)
+Add MultiThreading  
+Find testers to have some feedback  
+Add a tool to create the list, using CM's database to add full expansions, search by names etc  
+Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)  
 
 ## Download :
 ```shell
