@@ -5,7 +5,7 @@ Created on Mon Nov 15 10:44:33 2021
 
 @author: mat
 """
-import requests, re, sys, getopt, os, traceback
+import requests, re, sys, getopt, os, traceback, multiprocessing
 import os.path
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -31,14 +31,6 @@ when tracking prices of all kind of collectibles.
 Find a full documentation here :
 https://github.com/DrankRock/CMScrape
 """
-COLOR = {
-    "HEADER": "\033[95m",
-    "BLUE": "\033[94m",
-    "GREEN": "\033[92m",
-    "RED": "\033[91m",
-    "ENDC": "\033[0m",
-    "BOLD": "\033[1m"
-}
 
 def helpMe():
 	print("-- CardMarket Scraper --")
@@ -76,145 +68,159 @@ def helpMe():
 	print("|_____________________|")
 
 #=############################################################=#
-# ---------------------- SINGLE SCRAPER ---------------------- #
-class SingleScraper():
-	def __init__(self, url):
-		self.url = url
-
+# -------------------- SINGLE LINK SCRAPER ------------------- #
+def SingleLinkScraper(url):
 	"""
 	scrape the parameters and output them in the cvs format
 	"""
-	def paramScrap(self):
+	def paramScrap(params_ref):
 		"""
 		for each parameters, get only the value
-		:param parameter: the index of the parameter in the parameters list
+		:param params: the list containing all the a
+		:param indexInParams: the index of the parameter in the parameters list
 		:param paramString: a string containing the name of the parameter as used in cardmarket's url
 		"""
-		def singleParamScrap(parameter, paramString):
-			if parameter >= 0:
-				content = self.params[parameter]
+		def singleParamScrap(params, indexInParams, paramString):
+			if indexInParams >= 0:
+				content = params[indexInParams]
 				splitted_content = content.split("=")
 				splitted_content = str(splitted_content[1]).replace(",",";")
-				self.paramliste.append(splitted_content)
+				return splitted_content
 			else:
-				content = 'None'
-				self.paramliste.append(content)
+				return 'None'
+
+		# if the given list contains the given substring, 
+		# Returns the index of the first occurence of the
+		# substring in the list. Else, returns -1.
+		def index_containing_substring(the_list, substring):
+			for i, s in enumerate(the_list):
+				if substring in s:
+					return i
+			return -1
 
 		# get the list of all the parameters in the url
-		self.params = self.params_ref.split("&")
-		self.paramliste = []
-		# these are the interesting parameters, that we will put in the cvs output, we want to get their values
-		language = self.index_containing_substring(self.params, "language")
-		sellerType = self.index_containing_substring(self.params, "sellerType")
-		minCondition = self.index_containing_substring(self.params, "minCondition")
-		isSigned = self.index_containing_substring(self.params, "isSigned")
-		isFirstEd = self.index_containing_substring(self.params, "isFirstEd")
-		isPlayset = self.index_containing_substring(self.params, "isPlayset")
-		isAltered = self.index_containing_substring(self.params, "isAltered")
-		isReverseHolo = self.index_containing_substring(self.params, "isReverseHolo")
-		isFoil = self.index_containing_substring(self.params, "isFoil")
-		#isFoil=Y
-		# make use of singleParamScrap to update paramliste with only the values
-		singleParamScrap(language, "language")
-		singleParamScrap(sellerType, "sellerType")
-		singleParamScrap(minCondition, "minCondition")
-		singleParamScrap(isSigned, "isSigned")
-		singleParamScrap(isFirstEd, "isFirstEd")
-		singleParamScrap(isPlayset, "isPlayset")
-		singleParamScrap(isAltered, "isAltered")
-		singleParamScrap(isReverseHolo, "isReverseHolo")
-		singleParamScrap(isFoil, "isFoil")
-		# No need of a return, we can use self.paramliste
+		params = params_ref.split("&")
+		paramliste = []
 
-	def index_containing_substring(self, the_list, substring):
-	    for i, s in enumerate(the_list):
-	        if substring in s:
-	              return i
-	    return -1
+		# these are the interesting parameters, that we will put in the cvs output, 
+		# we want to get their values. Please note that this might not be complete
+		# it seems like it is concerning Pokemon and YuGiOh, but if I missed any
+		# in any other game please let me know
+		possibleParameters = [
+			"language",
+			"sellerType",
+			"minCondition",
+			"isSigned",
+			"isFirstEd",
+			"isPlayset",
+			"isAltered",
+			"isReverseHolo",
+			"isFoil"
+		]
+		# For each parameters, if it has a value, appends it, else, appends 'None'
+		for parameter in possibleParameters:
+			currentIndex = index_containing_substring(params, parameter)
+			paramliste.append(singleParamScrap(params, currentIndex, parameter))
 
-	def Main(self):
-		# Variables that are always the same
-		splitted_URL = self.url.split("/")
-		langage = splitted_URL[3]
-		jeu = splitted_URL[4]
-		item = splitted_URL[6]
+		return paramliste
 
-		page = requests.get(self.url)
-		soup = BeautifulSoup(page.content, "html.parser")
-		title = soup.find('title')
-		if "Maintenance | Cardmarket" in str(title):
-			print("CardMarket is currently under Maintenance. Please try again later.")
-			sys.exit(1)
-		extension = 'None'
-		name_uncut = soup.find_all("div", class_="flex-grow-1")
-		name = re.search('><h1>(.*)<span', str(name_uncut))
-		name = name.group(1)
-		name = name.replace('"','""')
-		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
-		# print("Prices uncut : ",Prices_uncut) #DEBUG
-		Prices_uncut = Prices_uncut[-5:]
-
-		#if we are seeing cards
-		if item=="Singles":
-			names_ref = splitted_URL[8]
-			extension_uncut = soup.find_all("a", class_="mb-2")
-			extension = re.search('">(.*)</a',str(extension_uncut))
-			extension = extension.group(1)
-			number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
-			# print("Number : {}".format(number)) #DEBUG
-			if number == []:
-				number = 'None'
-			else:
-				number = re.search('">(.*)<',str(number)).group(1)
-			# print("1d:{} - 7d:{} - 30d:{} - trend:{} - from:{}".format(Prices_uncut[pULength-1],Prices_uncut[pULength-2],Prices_uncut[pULength-3],Prices_uncut[pULength-4],Prices_uncut[pULength-5]))
-		else:
-			# if the item is not a single card
-			names_ref = splitted_URL[7]
-			extension = 'None'
-			number = 'None'
-
-		allPrices = []
-		for potential_price in Prices_uncut:
-			# print("Item : {}".format(str(potential_price)))
-			search = re.search('>(\d.*€)<', str(potential_price))
-			searchnone = re.search('>N/A<', str(potential_price))
-			# print("Search : {}\n Search N/A : {}".format(search, searchnone)) #DEBUG
-			if searchnone != None:
-				allPrices.append('None')
-			elif search != None:
-				allPrices.append(search.group(1))
-
-		name_ref_split = names_ref.split("?")
-		if len(name_ref_split) == 1 :
-			self.params_ref = ''
-		else:
-			self.params_ref = name_ref_split[1]
+	#=---- MAIN CODE ----=#
+	# Variables initialisation
+	splitted_URL = url.split("/")
+	langage = splitted_URL[3]
+	game = splitted_URL[4]
+	item = splitted_URL[6]
+	expansion = 'None'
+	number = 'None'
+	allPrices = []
 	
-		# print("Prices uncut : {}".format(Prices_uncut)) #DEBUG
+	# Bs4 Request
+	page = requests.get(url)
+	soup = BeautifulSoup(page.content, "html.parser")
+	
+	# Checking if CardMarket is currently under maintenance
+	title = soup.find('title')
+	if "Maintenance | Cardmarket" in str(title):
+		print("CardMarket is currently under Maintenance. Please try again later.")
+		sys.exit(1)
+	
+	# Scraping the name of the object
+	name_uncut = soup.find_all("div", class_="flex-grow-1")
+	name = re.search('><h1>(.*)<span', str(name_uncut))
+	name = name.group(1)
+	name = name.replace('"','""') # in csv, if you want to show a " , you need to put a " before, so 24" tv -> 24"" tv
 
-		# print("All Prices : {}".format(allPrices)) #DEBUG
-		out = [jeu, item, extension, number, name, allPrices[0].replace(".","").replace(",",".").replace("€",""), allPrices[1].replace(".","").replace(",",".").replace("€",""), allPrices[2].replace(".","").replace(",",".").replace("€","")]
-		self.paramScrap()
-		self.paramliste.append('"{}"'.format(self.url))
-		returnListe = out+self.paramliste
-		# print("return list : {}".format(returnListe)) #DEBUG
-		# Returns a normal list. The objects within the list might contain unwanted ",", especially in the name area.
-		return returnListe
+	# Scraping all the variables in the same box as prices
+	Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
+	# Only the last five results in the box interests us, they are the variable I'll be outputing
+	Prices_uncut = Prices_uncut[-5:]
+	for potential_price in Prices_uncut:
+		# Scrape the price in € . If the price is not in euros, it will not be detected.
+		search = re.search('>(\d.*€)<', str(potential_price))
+		searchnone = re.search('>N/A<', str(potential_price))
+		if searchnone != None:
+			allPrices.append('None')
+		elif search != None:
+			allPrices.append(search.group(1))
+
+	# The next if-else is because single cards contain more information than
+	# Other objects such as deck boxes, they thus need more scraping to be done
+	# When a value does not exist, its value is "None"
+	# | inurlParams is the last block of a CM url, containing details about the product
+	# If we are seeing cards
+	if item=="Singles":
+		inurlParams = splitted_URL[8]
+		# Scrape the expansion
+		expansion_uncut = soup.find_all("a", class_="mb-2")
+		expansion = re.search('">(.*)</a',str(expansion_uncut))
+		expansion = expansion.group(1)
+
+		# Scrape the card number
+		number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
+		if number != []:
+			number = re.search('">(.*)<',str(number)).group(1)
+	else:
+		# if the item is not a single card
+		inurlParams = splitted_URL[7]
+		# this value changes because when showing non-cards item, CM links
+		# are shorter, not containing the expansion
+
+	# Find the parameters specified in the url
+	inurlParams_splitted = inurlParams.split("?")
+	if len(inurlParams_splitted) == 1 :
+		params_ref = ''
+	else:
+		params_ref = inurlParams_splitted[1]
+
+	# Generates the first half of the output
+	out = [game, item, expansion, number, name, allPrices[0].replace(".","").replace(",",".").replace("€",""), allPrices[1].replace(".","").replace(",",".").replace("€",""), allPrices[2].replace(".","").replace(",",".").replace("€","")]
+	# Generates the second half of the output
+	paramliste = paramScrap(params_ref)
+	# url has to be quoted to be seen as a string by csv viewer such as libreOffice, because it
+	# might contain coma, the seperator value.
+	paramliste.append('"{}"'.format(url))
+	returnListe = out+paramliste
+	# Returns a normal list. The objects within the list might contain unwanted ",", especially in the name and url areas.
+	return returnListe
 
 #=############################################################=#
 # ---------------------- MULTI SCRAPER ----------------------- #
 
-def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
-	#(String[] args, Bool fileOut, Bool fileStat, Bool sortOut)
+# A rough description would be "an overly complicated way to make a for loop of SingleLinkScraper".
+def MultipleLinkScraper(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI, nCores):
+	# Precision about the arguments : 
+	# (String[] args, Bool fileOut, Bool fileStat, Bool sortOut, Bool isGraphic, Bool graphicUi, Integer nCPU)
+	print("Running CMScrape on {} cores".format(nCores))
 	# -- Files Opening -- #
 	fileIn = open(args[0], 'r')
-	#fileIn is necessary. It will always be here.
+	# fileIn is necessary. It will always be here. If no input is given, an exception is thrown before this.
 	if isFileOut:
+		# If an output file is specified
 		fileOut = open(args[1], 'w')
 	else:
-		#this line is necessary because i print a lot, and it's a pain in the ass to redirect everything
-		#with a lot of "if" when the user doesn't want output. That's easier.
-		#>Don't want to print? Just print to the nowhere!
+		# this line is necessary because i print a lot, and it's a pain in the ass to redirect everything
+		# with a lot of "if" when the user doesn't want output. That's easier.
+		# >Don't want to print? Just print to the nowhere!
 		fileOut = open(os.devnull, 'w')
 	if isFileStat:
 		# if there is a stat file
@@ -222,59 +228,55 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 			# if there is an outfile, it is appended first in args, so args[1] is out and args[2] is stat
 			indexOfStat=2
 		else:
-			# else, args[1] is stat and out is nowhttps://github.com/topics/rhere.
+			# else, args[1] is stat and out is now here.
 			indexOfStat=1
-		# if the string containing the name of the file exists
-		try:
-			# if the file exists, this will work, else it throws an error
-			size = os.path.getsize(args[indexOfStat])
-			fileStat = open(args[indexOfStat], 'a')
-		except:
-			# catch the error (please note that this is a shitty way to solve the problem.)
-			# if fileStat needs to be created, a separator is specified at the top of the file
-			fileStat = open(args[indexOfStat], 'a')
-			# print("sep=,", file=fileStat)
+		fileStat = open(args[indexOfStat], 'a')
 
 	# Initialisation of OutputFile
-	# print("sep=,",file=fileOut) #seems to do nothing..
+	# print("sep=,",file=fileOut) #separator is not read with libreoffice so I removed this idea.
 	print("game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url", file=fileOut)
+	
 	# -- Variable Initialisation -- #
-	Lines = fileIn.readlines()
-	nLines = len(Lines)
+	probablyURLs = fileIn.read().splitlines()
+	nLines = len(probablyURLs)
+	nURLScraped = 0
 	iterator = 1
+	i = 0
 	minPrice = 0.0
 	trendPrice = 0.0
 	mean30Price = 0.0
-	# -- Looping through the URLs -- #
-	for line in Lines:
-		text = "[{}/{}] scraping links...     \nScraping : {}".format(iterator,nLines,line)
+	
+	# Multi-Processing initialization
+	p = multiprocessing.Pool(int(nCores))
+	for scrapes in p.imap(SingleLinkScraper, probablyURLs):
+		url = probablyURLs[i]
+		i+=1
+		text = "[{}/{}] scraping links...     \nScraping : {}".format(iterator,nLines,url)
+		# If it's not lauched as a terminal app, update the console output in the window.
 		if isGraphic:
 			perc = iterator*100/nLines
-			graphicUI.progressBar.setValue(perc)
+			graphicUI.progressBar.setValue(round(perc))
 			graphicUI.consoleDisp.setText(text)
 			QApplication.processEvents()
 		print("[{}/{}] scraping links...     ".format(iterator,nLines), end="\r", flush=True)
-		currentline = str(line.strip())
-		try:
-			singScrap = SingleScraper(currentline)
-			scrapes = singScrap.Main()
-			if scrapes[5] != 'None':
-				minPrice+=float(scrapes[5])
-			if scrapes[6] != 'None':
-				trendPrice+=float(scrapes[6])
-			if scrapes[7] != 'None':
-				mean30Price+=float(scrapes[7])
-			# For loop adding \" \" around each item. Might be necessary only for the name, in case of it containing a ','.
-			#for i in range(len(scrapes)):
-			#	scrapes[i] = "\"{}\"".format(str(scrapes[i]))
-			scrapes[4] = "\"{}\"".format(str(scrapes[4])) # Do it only for the name.
-			print(', '.join(scrapes), file=fileOut)
-		except Exception:
-			traceback.print_exc()
-			#print("Couldn't scrape link : {} -- Error:\n{}".format(currentline,e))
+		
+		# Remove the endOfLine character(\r, \n)
+		url = str(url.strip())
+		if scrapes[5] != 'None':
+			minPrice+=float(scrapes[5])
+		if scrapes[6] != 'None':
+			trendPrice+=float(scrapes[6])
+		if scrapes[7] != 'None':
+			mean30Price+=float(scrapes[7])
+
+		# adds quotes around the name in case of it containing a comma, which is the csv separator
+		scrapes[4] = "\"{}\"".format(str(scrapes[4]))
+		print(', '.join(scrapes), file=fileOut)
+		nURLScraped+=1
 		iterator+=1
-	print("[{}] links successfully scraped.".format(nLines))
-	nLinesp1=nLines+1
+		
+
+	print("{} out of {} links successfully scraped.".format(nURLScraped,nLines))
 	print("Total Min Price = {}\nTotal Trend Price = {}\nTotal Mean Price = {}".format(minPrice, trendPrice, mean30Price))
 	print(",,Number of Cards:,{},Total Prices:,{},{},{}".format(nLines,minPrice,trendPrice,mean30Price), file=fileOut)
 	if isFileStat==True:
@@ -284,9 +286,10 @@ def MultiScrap(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI):
 #=############################################################=#
 # ---------------------- CSV SORT FILE ----------------------- #
 
+# Sorts the lines contained in a csv in alphabetical order
 def csvSortFile(file):
 	## We shall ignore the first line because it's the sep=,
-	#[1:]
+	#[1:] # The separator will not be precised as LibreOffice doesn't read it
 	toSort = open(file, 'r')
 	# separator=toSort.readline().rstrip()
 	toSortLines = toSort.read().splitlines()
@@ -302,8 +305,9 @@ def csvSortFile(file):
 # ------------------------ MAIN WINDOW ----------------------- #
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
-	def __init__(self, parent=None):
+	def __init__(self, cores, parent=None):
 		QtWidgets.QMainWindow.__init__(self, parent)
+		self.nCores = cores
 		self.setupUi(self)
 		self.inputBtn.clicked.connect(self.inputFileDialog)
 		self.statBtn.clicked.connect(self.statFileDialog)
@@ -352,7 +356,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 	def run(self):
 
 		if self.chosenFileLbl.text() == "No file chosen":
-			print("Error : no input file was chosen.")
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Critical)
+			msg.setText("Error")
+			msg.setInformativeText('Please chose an input file')
+			msg.setWindowTitle("Error - No File Chosen")
+			msg.exec_()
 		else:
 			isOut=False
 			isStat=False
@@ -364,12 +373,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				isStat=True;
 				args.append(self.chosenStatLbl.text())
 			print("Running ...")
-			MultiScrap(args, isOut, isStat, False, True, self)
+			MultipleLinkScraper(args, isOut, isStat, False, True, self, self.nCores)
 
+#=############################################################=#
+# ------------------------- GRAPHIC -------------------------- #
 
-def graphic():
+def graphic(cores):
 	app = QtWidgets.QApplication(sys.argv)
-	main = MainWindow()
+	main = MainWindow(cores)
 	main.show()
 	sys.exit(app.exec_())
 
@@ -384,10 +395,11 @@ def main(argv):
 	sortOut=False
 	useOut=False
 	useStat=False
-	grahicLaunch=True #default mode
+	grahicLaunch=True #default launching mode
 	termLaunch=False
+	nCores=1
 	try:
-		opts, args = getopt.getopt(argv,"ghit:o:s:",["ifile=","ofile=","stats="])
+		opts, args = getopt.getopt(argv,"ghit:o:s:c",["ifile=","ofile=","stats=","cores="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
@@ -410,7 +422,9 @@ def main(argv):
 		elif opt in ("-s", "--stats"):
 			statfile = arg
 			useStat=True
-
+		elif opt in ("-c", "--cores"):
+			nCores = arg
+	print("nCores : {}".format(nCores))
 	for opt in opts:
 		if opt in ("-so", "--sort-outfile"):
 			sortOut=True
@@ -427,9 +441,9 @@ def main(argv):
 	if statfile != '':
 		args.append(statfile)
 	if termLaunch:
-		MultiScrap(args, useOut, useStat, sortOut, grahicLaunch)
+		MultipleLinkScraper(args, useOut, useStat, sortOut, grahicLaunch, nCores)
 	else:
-		graphic()
+		graphic(nCores)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
