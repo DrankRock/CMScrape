@@ -28,7 +28,8 @@ Note : this project was developped on Ubuntu 16.04. If you face any issue witht 
 I am currently trying to make the best possible GUI using PyQt5. I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
 
 ## TODO :
-Add MultiThreading  
+Add MultiThreading 
+#### MultiProcessing was successfully added, but CM blocks requests after 30 tries. I will be trying to solve this using proxies, and i'm currently looking into https://github.com/Ge0rg3/requests-ip-rotator to avoid users to have to use their own proxies. If you want to try the cores, add "--cores [number of cores]" at the end of the command.
 Find testers to have some feedback  
 Add a tool to create the list, using CM's database to add full expansions, search by names etc  
 Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)  
