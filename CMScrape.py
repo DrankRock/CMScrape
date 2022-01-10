@@ -210,7 +210,7 @@ def SingleLinkScraper(url):
 def MultipleLinkScraper(args, isFileOut, isFileStat, isSortOut, isGraphic, graphicUI, nCores):
 	# Precision about the arguments : 
 	# (String[] args, Bool fileOut, Bool fileStat, Bool sortOut, Bool isGraphic, Bool graphicUi, Integer nCPU)
-	print("Running CMScrape on {} cores".format(nCores))
+	print("Available cores : {}\nUsing {} core(s)".format(multiprocessing.cpu_count(),nCores))
 	# -- Files Opening -- #
 	fileIn = open(args[0], 'r')
 	# fileIn is necessary. It will always be here. If no input is given, an exception is thrown before this.
@@ -399,7 +399,7 @@ def main(argv):
 	termLaunch=False
 	nCores=1
 	try:
-		opts, args = getopt.getopt(argv,"ghit:o:s:c",["ifile=","ofile=","stats=","cores="])
+		opts, args = getopt.getopt(argv,"cghit:o:s",["ifile=","ofile=","stats=","cores="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
@@ -424,7 +424,6 @@ def main(argv):
 			useStat=True
 		elif opt in ("-c", "--cores"):
 			nCores = arg
-	print("nCores : {}".format(nCores))
 	for opt in opts:
 		if opt in ("-so", "--sort-outfile"):
 			sortOut=True
