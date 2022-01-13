@@ -159,3 +159,6 @@ Below is an example of a not working example, because it does not contain trend/
 
 #### This works
 ![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/works.png "workingExample")
+
+### Thanks to :
+The logo was created from another one created by Gregor Cresnar from the Noun Project.
