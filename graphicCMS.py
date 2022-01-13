@@ -14,7 +14,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(400, 132)
+        sizeObject = QtWidgets.QDesktopWidget().screenGeometry(-1)
+        height = int(sizeObject.height())
+        width = int(sizeObject.width())
+        MainWindow.resize(width/2, height/2)
+        self.move((width / 2) - (self.frameSize().width() / 2),
+            (height / 2) - (self.frameSize().height() / 2))
         MainWindow.setStyleSheet("background-color: rgb(28, 39, 40);\n"
 "color: rgb(231, 231, 231);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
