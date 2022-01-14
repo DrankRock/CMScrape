@@ -5,16 +5,16 @@ Created on Mon Nov 15 10:44:33 2021
 
 @author: mat
 """
-import requests, re, sys, getopt, os, traceback, multiprocessing, time
+import requests, re, sys, getopt, os, traceback, multiprocessing, time, csv
 import os.path
 
 from bs4 import BeautifulSoup
-from datetime import datetime
-from graphicCMS import Ui_MainWindow
+from graphicCMS import Ui_MainWindow, UI_Preferences
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QApplication, QAction
 
 from scrapers import *
+from multiProcess import *
 
 #-##############################-#
 # ---------- ✖︎ TODO ✔︎ -----------#
@@ -93,6 +93,25 @@ def csvSortFile(file):
 		print(toSortLines[i], file=out)
 
 #=############################################################=#
+# --------------------- PREFERENCE DIALOG -------------------- #
+
+class PreferencesDialog(QtWidgets.QDialog, UI_Preferences):
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self, parent)
+        self.setupUi(self)
+        self.addbtn.clicked.connect(self.addButtonData)
+        self.cancelbtn.clicked.connect(self.cancelButtonData)
+
+    def addButtonData(self):
+        self.accept()
+
+    def cancelButtonData(self):
+        self.reject()
+
+    def getData(self):
+        return self.getParameters()
+
+#=############################################################=#
 # ------------------------ MAIN WINDOW ----------------------- #
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -107,6 +126,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			msg.setInformativeText(text)
 			msg.setWindowTitle("About")
 			msg.exec_()
+		def preferencesTriggered():
+			dialog = PreferencesDialog(self)
+			dialog.setParameters(self.nProxy,self.nThreads)
+			result = dialog.exec_()
+			if result == dialog.Accepted:
+				self.nProxy = dialog.getData()[0]
+				self.nThreads = dialog.getData()[1]
+				self.consoleDisp.setPlainText("Number of Proxies is now : {}\nNumber of Threads is now : {}".format(self.nProxy, self.nThreads))
+				with open('.cmscrape','w') as f:
+					f.write("'Threads' : {}\n'Proxies' : {}".format(self.nThreads, self.nProxy))
 
 		menuBar = self.menuBar()
 
@@ -123,6 +152,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		## preferences
 		self.preferencesAction = QAction("&Preferences", self)
 		self.preferencesAction.setShortcut("Ctrl+P")
+		self.preferencesAction.triggered.connect(preferencesTriggered)
 
 		## quit
 		self.quitAction = QAction("&Quit", self)
@@ -140,15 +170,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		helpMenu.addAction(self.quitAction)
 
 
-	def __init__(self, cores, parent=None):
+	def __init__(self, parent=None):
 		QtWidgets.QMainWindow.__init__(self, parent)
-		self.nCores = cores
 		self.setupUi(self)
+		self.nThreads = 0
+		self.nProxy = 0
+		self.proxyFile = 'test'
+		self.loadConfig()
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
 		self.statBtn.clicked.connect(self.statFileDialog)
 		self.outputBtn.clicked.connect(self.outputFileDialog)
 		self.runBtn.clicked.connect(self.run)
+
+	def loadConfig(self):
+		if os.path.exists('.cmscrape'):
+			with open('.cmscrape', 'r') as openRead:
+				settings = openRead.read().splitlines()
+			openRead.close()
+			for line in settings:
+				split_line = line.split(" : ")
+				if split_line[0] == "'Threads'":
+					self.nThreads = int(split_line[1])
+				if split_line[0] == "'Proxies'":
+					self.nProxy = int(split_line[1])
+		else:
+			with open('.cmscrape','w') as f:
+				self.nThreads = 20
+				self.nProxy = 50
+				f.write("'Threads' : 20\n'Proxies' : 50")
 
 	def inputFileDialog(self):
 		self.fileDialog = QFileDialog()
@@ -190,7 +240,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.chosenStatLbl.adjustSize()
 
 	def run(self):
-
 		if self.chosenFileLbl.text() == "No file chosen":
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Critical)
@@ -199,24 +248,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			msg.setWindowTitle("Error - No File Chosen")
 			msg.exec_()
 		else:
-			isOut=False
-			isStat=False
-			args=[self.chosenFileLbl.text()]
+			isOut = False
+			isStat = False
+			inFile = self.chosenFileLbl.text()
 			if self.chosenOutLbl.text() != "No file chosen":
-				isOut=True;
-				args.append(self.chosenOutLbl.text())
+				isOut = self.chosenOutLbl.text();
 			if self.chosenStatLbl.text() != "No file chosen":
-				isStat=True;
-				args.append(self.chosenStatLbl.text())
-			print("Running ...")
-			MultipleLinkScraper(args, isOut, isStat, False, True, self, self.nCores)
+				isStat = self.chosenStatLbl.text()
+			multiProcess(inFile, self.nThreads, self.nProxy, isOut, isStat, self.consoleDisp)
 
 #=############################################################=#
 # ------------------------- GRAPHIC -------------------------- #
 
-def graphic(cores):
+def graphic():
 	app = QtWidgets.QApplication(sys.argv)
-	main = MainWindow(cores)
+	main = MainWindow()
 	main.show()
 	sys.exit(app.exec_())
 
@@ -278,7 +324,7 @@ def main(argv):
 	if termLaunch:
 		MultipleLinkScraper(args, useOut, useStat, sortOut, grahicLaunch, nCores)
 	else:
-		graphic(nCores)
+		graphic()
 
 if __name__ == "__main__":
    main(sys.argv[1:])

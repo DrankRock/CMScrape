@@ -10,18 +10,117 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+DialogStyleSheet = "background-color: rgb(45, 45, 45);\n""color: rgb(211, 211, 211);\n""font: 11pt \"Ubuntu Mono\";""font-weight: bold"
+TableViewStyleSheet = "background-color: rgb(70, 70, 70);\n"
+GreenButtonStyleSheet = "background-color: rgb(71, 141, 75);\n""color: rgb(45, 45, 45);\n""border-color: rgb(0, 80, 0);"
+RedButtonStyleSheet = "background-color: rgb(170, 16, 16);\n""color: rgb(45, 45, 45);\n""border-color: rgb(80, 0, 0);"
+BlueButtonStyleSheet = "background-color: rgb(77, 84, 176);\n""color: rgb(45, 45, 45);\n""border-color: rgb(0, 0, 80);"
+#NormalButtonStyleSheet =
+
+_MAXVALUE_ = 999999999
+SCREEN_HEIGHT = 0
+SCREEN_WIDTH = 0
+
+class UI_Preferences(object):
+    def setupUi(self, Preferences):
+        Preferences.setObjectName("Preferences")
+        Preferences.resize(150, 80)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Preferences.sizePolicy().hasHeightForWidth())
+        Preferences.setSizePolicy(sizePolicy)
+        self.verticalLayout = QtWidgets.QVBoxLayout(Preferences)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.inTitle1 = QtWidgets.QLabel(Preferences)
+        self.inTitle1.setMinimumSize(QtCore.QSize(100, 20))
+        self.inTitle1.setObjectName("inTitle1")
+        self.verticalLayout.addWidget(self.inTitle1)
+        ## Number of Threads
+        self.gridLayout31 = QtWidgets.QGridLayout()
+        self.gridLayout31.setObjectName('gridLayout31')
+
+        self.nProxyLbl = QtWidgets.QLabel(Preferences)
+        self.nProxyLbl.setMinimumSize(QtCore.QSize(150, 20))
+        self.nProxyLbl.setObjectName('nProxyLbl')
+        self.gridLayout31.addWidget(self.nProxyLbl, 0, 0, 1, 1)
+
+        self.nProxy = QtWidgets.QSpinBox(Preferences)
+        self.nProxy.setMinimumSize(QtCore.QSize(0, 20))
+        self.nProxy.setBaseSize(QtCore.QSize(100, 20))
+        self.nProxy.setObjectName('nProxy')
+        self.gridLayout31.addWidget(self.nProxy, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout31)
+
+        ## Number of Proxies
+        self.gridLayout3 = QtWidgets.QGridLayout()
+        self.gridLayout3.setObjectName('gridLayout3')
+        self.nThreadsLbl = QtWidgets.QLabel(Preferences)
+        self.nThreadsLbl.setMinimumSize(QtCore.QSize(150, 20))
+        self.nThreadsLbl.setObjectName('nThreadsLbl')
+        self.gridLayout3.addWidget(self.nThreadsLbl, 0, 0, 1, 1)
+        self.nThreads = QtWidgets.QSpinBox(Preferences)
+        self.nThreads.setMinimumSize(QtCore.QSize(0, 20))
+        self.nThreads.setBaseSize(QtCore.QSize(100, 20))
+        self.nThreads.setObjectName('nThreads')
+        self.gridLayout3.addWidget(self.nThreads, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout3)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.nThreads.sizePolicy().hasHeightForWidth())
+        self.nThreads.setMaximum(_MAXVALUE_)
+        ####
+        self.buttonGridLayout4 = QtWidgets.QGridLayout()
+        self.buttonGridLayout4.setObjectName("buttonGridLayout4")
+        self.cancelbtn = QtWidgets.QPushButton(Preferences)
+        self.cancelbtn.setMinimumSize(QtCore.QSize(80, 0))
+        self.cancelbtn.setObjectName("cancelbtn")
+        self.cancelbtn.setStyleSheet(RedButtonStyleSheet)
+        self.buttonGridLayout4.addWidget(self.cancelbtn, 0, 0, 1, 1)
+        self.addbtn = QtWidgets.QPushButton(Preferences)
+        self.addbtn.setMinimumSize(QtCore.QSize(80, 0))
+        self.addbtn.setObjectName("addbtn")
+        self.addbtn.setStyleSheet(GreenButtonStyleSheet)
+        self.buttonGridLayout4.addWidget(self.addbtn, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.buttonGridLayout4)
+        
+        self.retranslateUi(Preferences)
+        QtCore.QMetaObject.connectSlotsByName(Preferences)
+    
+    def retranslateUi(self, Preferences):
+        _translate = QtCore.QCoreApplication.translate
+        Preferences.setWindowTitle(_translate("Preferences", "Preferences"))
+        self.inTitle1.setText(_translate("Preferences", "Preferences :"))
+        self.nProxyLbl.setText(_translate("Preferences", "Number of Proxies"))
+        self.nThreadsLbl.setText(_translate("Preferences", "Number of Threads"))
+        self.cancelbtn.setText(_translate("Preferences", "CANCEL"))
+        self.addbtn.setText(_translate("Preferences", "SAVE CHANGES"))
+    
+    def getParameters(self):
+        out = []
+        out.append(self.nProxy.value())
+        out.append(self.nThreads.value())
+        return out
+    
+    def setParameters(self, nProxyVal, nThreadsval):
+        self.nProxy.setValue(nProxyVal)
+        self.nThreads.setValue(nThreadsval)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         sizeObject = QtWidgets.QDesktopWidget().screenGeometry(-1)
-        height = int(sizeObject.height())
-        width = int(sizeObject.width())
-        MainWindow.resize(width/2, height/2)
-        self.move((width / 2) - (self.frameSize().width() / 2),
-            (height / 2) - (self.frameSize().height() / 2))
+        global SCREEN_HEIGHT
+        global SCREEN_WIDTH
+        SCREEN_HEIGHT = int(sizeObject.height())
+        SCREEN_WIDTH = int(sizeObject.width())
+        MainWindow.resize(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+        self.move((SCREEN_WIDTH / 2) - (self.frameSize().width() / 2),
+            (SCREEN_HEIGHT / 2) - (self.frameSize().height() / 2))
         MainWindow.setStyleSheet("background-color: rgb(28, 39, 40);\n"
 "color: rgb(231, 231, 231);")
+        MainWindow.setWindowIcon(QtGui.QIcon('ressources/logo.ico'))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)

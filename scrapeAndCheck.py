@@ -1,69 +1,22 @@
 import urllib.request, urllib.error, socket, requests, multiprocessing, re, sys, random, time
 from bs4 import BeautifulSoup
 from multiprocessing.dummy import Pool as ThreadPool
+from PyQt5 import QtWidgets
 
 WEBPAGE = 'https://www.cardmarket.com/en'
+THREADS = 50
 TIMEOUT = 10
 
-headers_list = [{
-        'Host': 'www.cardmarket.com',
-        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-    },{
-        'Host': 'www.cardmarket.com',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36', 
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-    },{
-        'Host': 'www.cardmarket.com',
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36', 
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-    },{
-        'Host': 'www.cardmarket.com',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36', 
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-    }]
-
 class proxyClass():
-    def __init__(self, nThreads, nProxyNeeded, proxyFile):
+    def __init__(self, proxyFile, nProxy, consoleDisp):
+        self.consoleDisp = consoleDisp
+        self.needs = nProxy
         if proxyFile == False:
             self.initWebScrape()
         else:
             self.initFileProxy(proxyFile)
         random.shuffle(self.proxyList)
-        self.nThreads = nThreads
-        self.needs = nProxyNeeded
+        self.nProcess = THREADS
 
     def initFileProxy(self, proxyFile):
         with open(proxyFile, 'r') as f:
@@ -91,7 +44,8 @@ class proxyClass():
                     temp = temp+":"+elem
                     self.proxyList.append(temp)
                 current += 1
-            print("found {} proxies at https://free-proxy-list.net/".format(len(self.proxyList)))
+            self.consoleDisp.setPlainText("found {} proxies at https://free-proxy-list.net/".format(len(self.proxyList)))
+            QtWidgets.QApplication.processEvents()
 
         self.proxyList = []
         freeProxyListNet()
@@ -104,9 +58,10 @@ class proxyClass():
             r = requests.get(link, allow_redirects=True)
             out = r.content.decode("utf8").splitlines()
             self.proxyList = self.proxyList+out
-            print("found {} proxies at {}".format(len(out),link))
-        print("found {} proxies in total".format(len(self.proxyList)))
-
+            self.consoleDisp.setPlainText(self.consoleDisp.toPlainText()+"\n"+"found {} proxies at {}".format(len(out),link))
+            QtWidgets.QApplication.processEvents()
+        self.consoleDisp.setPlainText(self.consoleDisp.toPlainText()+"\n"+"found {} proxies in total".format(len(self.proxyList)))
+        QtWidgets.QApplication.processEvents()
     def getProxies(self):
         return self.proxyList
 
@@ -141,21 +96,62 @@ class proxyClass():
     def checkProxies(self):
         startTime = time.time()
         socket.setdefaulttimeout(TIMEOUT)
-        pool = ThreadPool(self.nThreads)
-        #pool = multiprocessing.Pool(processes=self.nThreads)
-        vals = pool.imap(self.checkProxy, self.proxyList)
+        pool = ThreadPool(self.nProcess)
+        #pool = multiprocessing.Pool(processes=self.nProcess)
         iterator = 0
         working = 0
         output = []
-        for result in vals:
-            text = "Checking Proxies : [{}/{}] - Working : {}, Need : {}".format((iterator+1),len(self.proxyList), working, self.needs)
-            print(text, end="\r", flush=True)
-            if result != -1:
-                output.append(result)
-                working+=1
-            if working >= self.needs:
-                self.proxyList = output
-                return output 
-            iterator+=1
-        self.proxyList = output
-        return output 
+        prevText = self.consoleDisp.toPlainText()
+        try:
+            vals = pool.imap(self.checkProxy, self.proxyList)
+            for result in vals:
+                text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator+1),len(self.proxyList), working, self.needs)
+                if working >= self.needs:
+                    self.proxyList = output
+                    return output 
+                self.consoleDisp.setPlainText(prevText+"\n"+text)
+                QtWidgets.QApplication.processEvents()
+                #print(text, end="\r", flush=True)
+                if result != -1:
+                    output.append(result)
+                    working+=1
+                iterator+=1
+            self.proxyList = output
+            return output 
+        except Exception as e:
+            print("Error while checking proxies :\n{}".format(e))
+
+
+# This comes from : https://stackoverflow.com/a/765436
+
+'''
+# Enhanced version of what's from stackoverflow with multiprocessing
+def main(nProcess, timeout):
+    socket.setdefaulttimeout(int(timeout))
+    if len(sys.argv) > 1:
+        p = proxyClass(sys.argv[1])
+    else:
+        p = proxyClass(False)
+    if len(sys.argv) > 2:
+        typeP = sys.argv[2]
+        p.TheType(typeP)
+    
+    proxyList = p.getProxies()
+    pool = ThreadPool(nProcess)
+    vals = pool.imap(is_bad_proxy, proxyList)
+    iterator = 0
+    working = 0
+    output = []
+    print("Checking which proxies are working ... (might take some time)\nThreads = {}\nTimeout = {}\nTesting url = {}".format(THREADS,TIMEOUT,WEBPAGE))
+    for result in vals:
+        print("[{}/{}] - Working : {}".format((iterator+1),len(proxyList), working), end="\r", flush=True)
+        if result != -1:
+            output.append(result)
+            working+=1
+        iterator+=1
+    strOut = "\n".join(output)
+    #print("Working Proxies : \n{}".format(strOut))
+    return strOut
+
+# Search for free proxies and check which one are working, on google, with a timeout of 5s, on 8 threads
+'''
