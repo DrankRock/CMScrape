@@ -10,7 +10,7 @@ import os.path
 
 from bs4 import BeautifulSoup
 from graphicCMS import Ui_MainWindow, UI_Preferences
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QApplication, QAction
 
 from scrapers import *
@@ -81,16 +81,16 @@ def helpMe():
 def csvSortFile(file):
 	## We shall ignore the first line because it's the sep=,
 	#[1:] # The separator will not be precised as LibreOffice doesn't read it
-	toSort = open(file, 'r')
-	# separator=toSort.readline().rstrip()
-	toSortLines = toSort.read().splitlines()
-	toSortLines.sort()
-	toSort.close()
+	with open(file, 'r') as toSort:
+		# separator=toSort.readline().rstrip()
+		toSortLines = toSort.read().splitlines()
+		toSortLines.sort()
+		toSort.close()
 
-	out = open(file, 'w')
-	# print(separator, file=out)
-	for i in range(len(toSortLines)):
-		print(toSortLines[i], file=out)
+	with open(file, 'w') as out:
+		# print(separator, file=out)
+		for i in range(len(toSortLines)):
+			print(toSortLines[i], file=out)
 
 #=############################################################=#
 # --------------------- PREFERENCE DIALOG -------------------- #
@@ -111,6 +111,10 @@ class PreferencesDialog(QtWidgets.QDialog, UI_Preferences):
     def getData(self):
         return self.getParameters()
 
+    def keyPressEvent(self, event):
+        if event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_Q:
+        	self.close()
+
 #=############################################################=#
 # ------------------------ MAIN WINDOW ----------------------- #
 
@@ -128,14 +132,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			msg.exec_()
 		def preferencesTriggered():
 			dialog = PreferencesDialog(self)
-			dialog.setParameters(self.nProxy,self.nThreads)
+			dialog.setParameters(self.nProxiesThreads, self.nProxy,self.nThreads)
 			result = dialog.exec_()
 			if result == dialog.Accepted:
-				self.nProxy = dialog.getData()[0]
-				self.nThreads = dialog.getData()[1]
-				self.consoleDisp.setPlainText("Number of Proxies is now : {}\nNumber of Threads is now : {}".format(self.nProxy, self.nThreads))
+				resultList = dialog.getData()
+				self.nProxiesThreads = resultList[0]
+				self.nProxy = resultList[1]
+				self.nThreads = resultList[2]
+				self.consoleDisp.setPlainText("Number of Proxies is now : {}\nNumber of Threads is now : {}".format(self.nProxiesThreads, self.nProxy, self.nThreads))
 				with open('.cmscrape','w') as f:
-					f.write("'Threads' : {}\n'Proxies' : {}".format(self.nThreads, self.nProxy))
+					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy))
 
 		menuBar = self.menuBar()
 
@@ -175,6 +181,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.setupUi(self)
 		self.nThreads = 0
 		self.nProxy = 0
+		self.nProxiesThreads = 0
 		self.proxyFile = 'test'
 		self.loadConfig()
 		self._createMenuBar()
@@ -194,11 +201,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 					self.nThreads = int(split_line[1])
 				if split_line[0] == "'Proxies'":
 					self.nProxy = int(split_line[1])
+				if split_line[0] == "'ProxiesThreads'":
+					self.nProxiesThreads = int(split_line[1])
 		else:
 			with open('.cmscrape','w') as f:
-				self.nThreads = 20
+				self.nThreads = 40
 				self.nProxy = 50
-				f.write("'Threads' : 20\n'Proxies' : 50")
+				self.nProxiesThreads = 50
+				f.write("'ProxiesThreads' : 50\n'Threads' : 40\n'Proxies' : 50")
 
 	def inputFileDialog(self):
 		self.fileDialog = QFileDialog()
@@ -255,7 +265,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				isOut = self.chosenOutLbl.text();
 			if self.chosenStatLbl.text() != "No file chosen":
 				isStat = self.chosenStatLbl.text()
-			multiProcess(inFile, self.nThreads, self.nProxy, isOut, isStat, self.consoleDisp)
+			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.consoleDisp)
 
 #=############################################################=#
 # ------------------------- GRAPHIC -------------------------- #

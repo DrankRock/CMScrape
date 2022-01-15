@@ -85,7 +85,7 @@ def fun1(url):
 	soup = BeautifulSoup(response.text, 'lxml')
 	return scrapers.CMSoupScraper(url, soup)
 
-def multiProcessMap(urlList, poolSize, outFile, statFile,consoleDisp):
+def multiMap(urlList, poolSize, outFile, statFile,consoleDisp, poolType):
 	if outFile != False:		
 		opened_outFile = open(outFile, 'w')
 	else:
@@ -99,33 +99,40 @@ def multiProcessMap(urlList, poolSize, outFile, statFile,consoleDisp):
 	minPrice = 0.0
 	trendPrice = 0.0
 	mean30Price = 0.0
-	with Pool(poolSize, initializer=init_process) as p:
-		try:
-			for scrapes in p.imap(fun1, urlList):
-				if scrapes != -1:
-					try:
-						if scrapes[5] != 'None':
-							minPrice+=float(scrapes[5])
-						if scrapes[6] != 'None':
-							trendPrice+=float(scrapes[6])
-						if scrapes[7] != 'None':
-							mean30Price+=float(scrapes[7])
-					except:
-						pass
-					#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
-					consoleDisp.setPlainText("[{}/{}] Prices: \n\tTotal minimum price = {}; \n\tTotal trending price = {}; \n\tTotal mean 30d price = {}".format(iterator, nURL,round(minPrice,3),round(trendPrice,3),round(mean30Price,3)))
-					QtWidgets.QApplication.processEvents()
-					workingIterator += 1
-					csv_writer.writerow(scrapes)
-				iterator += 1
-		except:
-			print("[WARNING]\nPlease wait for the processes to safely quit")
-			p.terminate()
-			p.join()
-			print("Processes stopped.")
+	if poolType == 'Threads':
+		p = ThreadPool(poolSize, initializer=init_process)
+	elif poolType == 'Processes':
+		p = Pool(poolSize, initializer=init_process)
+	else :
+		print("Unknown PoolType '{}' in multiMap (multiprocess.py).".format(poolType))
+		sys.exit(1)
+	try:
+		for scrapes in p.imap(fun1, urlList):
+			if scrapes != -1:
+				try:
+					if scrapes[5] != 'None':
+						minPrice+=float(scrapes[5])
+					if scrapes[6] != 'None':
+						trendPrice+=float(scrapes[6])
+					if scrapes[7] != 'None':
+						mean30Price+=float(scrapes[7])
+				except:
+					pass
+				#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
+				consoleDisp.setPlainText("[{}/{}] Prices: \n\tTotal minimum price = {}; \n\tTotal trending price = {}; \n\tTotal mean 30d price = {}".format(iterator, nURL,round(minPrice,3),round(trendPrice,3),round(mean30Price,3)))
+				
+				QtWidgets.QApplication.processEvents()
+				workingIterator += 1
+				csv_writer.writerow(scrapes)
+			iterator += 1
+	except Exception as e:
+		print("Exception caught during scraping : \n{}".format(e))
+		print("[WARNING]\nPlease wait for the processes to safely quit")
+	finally:
+		p.close()
+		p.join()
+		print("Processes stopped.")
 	print("\nSuccessfully scraped {} out of {} links.".format(workingIterator, nURL))
-	p.terminate()
-	p.join()
 	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
 	if statFile != False:		
 		with open(statFile, 'a') as f:
@@ -137,20 +144,21 @@ def multiProcessMap(urlList, poolSize, outFile, statFile,consoleDisp):
 #		results = p.map(fun1, urlList):
 #		for line in results:
 
-def multiProcess(inputFile, poolSize, nProxy, outFile, statFile, consoleDisp):
+def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, consoleDisp):
 	global prox
 	if poolSize < 1:
 		print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
 		sys.exit(1)
-	prox = proxyClass(False, nProxy, consoleDisp)
+	prox = proxyClass(False, nProxy, proxyPoolSize, consoleDisp)
 	prox.checkProxies()
 
+	consoleDisp.setPlainText("Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)")
 	start = time.time()
 
 	with open(inputFile, 'r') as f:
 		urlList = f.read().splitlines()
 	f.close()
 
-	output_list = multiProcessMap(urlList, poolSize, outFile, statFile, consoleDisp)
-	consoleDisp.setPlainText(consoleDisp.toPlainText()+"\n"+"Operation laster {} seconds".format(round(time.time()-start),3))
+	output_list = multiMap(urlList, poolSize, outFile, statFile, consoleDisp, 'Threads')
+	consoleDisp.setPlainText(consoleDisp.toPlainText()+"\n"+"Operation lasted {} seconds.\nFiles were successfully written.".format(round(time.time()-start),3))
 	QtWidgets.QApplication.processEvents()

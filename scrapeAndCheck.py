@@ -4,11 +4,11 @@ from multiprocessing.dummy import Pool as ThreadPool
 from PyQt5 import QtWidgets
 
 WEBPAGE = 'https://www.cardmarket.com/en'
-THREADS = 50
 TIMEOUT = 10
+FINISH = False
 
 class proxyClass():
-    def __init__(self, proxyFile, nProxy, consoleDisp):
+    def __init__(self, proxyFile, nProxy, proxyPoolSize, consoleDisp):
         self.consoleDisp = consoleDisp
         self.needs = nProxy
         if proxyFile == False:
@@ -16,7 +16,7 @@ class proxyClass():
         else:
             self.initFileProxy(proxyFile)
         random.shuffle(self.proxyList)
-        self.nProcess = THREADS
+        self.nProcess = proxyPoolSize
 
     def initFileProxy(self, proxyFile):
         with open(proxyFile, 'r') as f:
@@ -81,17 +81,18 @@ class proxyClass():
         return random.choice(self.proxyList)
 
     def checkProxy(self, pip):
-        try:
-            proxy_handler = urllib.request.ProxyHandler({'http': pip,'https': pip})
-            opener = urllib.request.build_opener(proxy_handler)
-            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-            urllib.request.install_opener(opener)
-            req=urllib.request.Request(WEBPAGE)  # change the URL to test here
-            sock=urllib.request.urlopen(req)
-        except:
-            #print("ERROR:", detail)
-            return -1
-        return pip
+        if not FINISH:
+            try:
+                proxy_handler = urllib.request.ProxyHandler({'http': pip,'https': pip})
+                opener = urllib.request.build_opener(proxy_handler)
+                opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+                urllib.request.install_opener(opener)
+                req=urllib.request.Request(WEBPAGE)  # change the URL to test here
+                sock=urllib.request.urlopen(req)
+            except:
+                #print("ERROR:", detail)
+                return -1
+            return pip
 
     def checkProxies(self):
         startTime = time.time()
@@ -117,9 +118,10 @@ class proxyClass():
                     working+=1
                 iterator+=1
             self.proxyList = output
-            return output 
-        except Exception as e:
-            print("Error while checking proxies :\n{}".format(e))
+        except:
+            global FINISH
+            FINISH = True
+        return output 
 
 
 # This comes from : https://stackoverflow.com/a/765436

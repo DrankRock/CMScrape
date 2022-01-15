@@ -21,10 +21,13 @@ _MAXVALUE_ = 999999999
 SCREEN_HEIGHT = 0
 SCREEN_WIDTH = 0
 
+PreferenceLblMinSize = QtCore.QSize(int(SCREEN_WIDTH/5.8), 20)
+PreferenceSpinBoxMinSize = QtCore.QSize(int(SCREEN_WIDTH/5.8), 20)
+
 class UI_Preferences(object):
     def setupUi(self, Preferences):
         Preferences.setObjectName("Preferences")
-        Preferences.resize(150, 80)
+        Preferences.resize(int(SCREEN_WIDTH/2.7), int(SCREEN_HEIGHT/4.8))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -36,32 +39,49 @@ class UI_Preferences(object):
         self.inTitle1.setMinimumSize(QtCore.QSize(100, 20))
         self.inTitle1.setObjectName("inTitle1")
         self.verticalLayout.addWidget(self.inTitle1)
-        ## Number of Threads
-        self.gridLayout31 = QtWidgets.QGridLayout()
-        self.gridLayout31.setObjectName('gridLayout31')
+
+        ## Number of Threads in proxyChecking
+        self.gridLayoutTproxyCheck = QtWidgets.QGridLayout()
+        self.gridLayoutTproxyCheck.setObjectName('gridLayoutTproxyCheck')
+
+        self.nProxyThreadsLbl = QtWidgets.QLabel(Preferences)
+        self.nProxyThreadsLbl.setMinimumSize(PreferenceLblMinSize)
+        self.nProxyThreadsLbl.setObjectName('nProxyThreadsLbl')
+        self.gridLayoutTproxyCheck.addWidget(self.nProxyThreadsLbl, 0, 0, 1, 1)
+
+        self.nProxyThreads = QtWidgets.QSpinBox(Preferences)
+        self.nProxyThreads.setMinimumSize(PreferenceSpinBoxMinSize)
+        self.nProxyThreads.setBaseSize(PreferenceSpinBoxMinSize)
+        self.nProxyThreads.setObjectName('nProxyThreads')
+        self.gridLayoutTproxyCheck.addWidget(self.nProxyThreads, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayoutTproxyCheck)
+
+        ## Number of Proxies needed
+        self.gridLayoutnProxyNeeded = QtWidgets.QGridLayout()
+        self.gridLayoutnProxyNeeded.setObjectName('gridLayoutnProxyNeeded')
 
         self.nProxyLbl = QtWidgets.QLabel(Preferences)
-        self.nProxyLbl.setMinimumSize(QtCore.QSize(150, 20))
+        self.nProxyLbl.setMinimumSize(PreferenceLblMinSize)
         self.nProxyLbl.setObjectName('nProxyLbl')
-        self.gridLayout31.addWidget(self.nProxyLbl, 0, 0, 1, 1)
+        self.gridLayoutnProxyNeeded.addWidget(self.nProxyLbl, 0, 0, 1, 1)
 
         self.nProxy = QtWidgets.QSpinBox(Preferences)
-        self.nProxy.setMinimumSize(QtCore.QSize(0, 20))
-        self.nProxy.setBaseSize(QtCore.QSize(100, 20))
+        self.nProxy.setMinimumSize(PreferenceSpinBoxMinSize)
+        self.nProxy.setBaseSize(PreferenceSpinBoxMinSize)
         self.nProxy.setObjectName('nProxy')
-        self.gridLayout31.addWidget(self.nProxy, 0, 1, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout31)
+        self.gridLayoutnProxyNeeded.addWidget(self.nProxy, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayoutnProxyNeeded)
 
-        ## Number of Proxies
+        ## Number of Threads in scraping
         self.gridLayout3 = QtWidgets.QGridLayout()
         self.gridLayout3.setObjectName('gridLayout3')
         self.nThreadsLbl = QtWidgets.QLabel(Preferences)
-        self.nThreadsLbl.setMinimumSize(QtCore.QSize(150, 20))
+        self.nThreadsLbl.setMinimumSize(PreferenceLblMinSize)
         self.nThreadsLbl.setObjectName('nThreadsLbl')
         self.gridLayout3.addWidget(self.nThreadsLbl, 0, 0, 1, 1)
         self.nThreads = QtWidgets.QSpinBox(Preferences)
-        self.nThreads.setMinimumSize(QtCore.QSize(0, 20))
-        self.nThreads.setBaseSize(QtCore.QSize(100, 20))
+        self.nThreads.setMinimumSize(PreferenceSpinBoxMinSize)
+        self.nThreads.setBaseSize(PreferenceSpinBoxMinSize)
         self.nThreads.setObjectName('nThreads')
         self.gridLayout3.addWidget(self.nThreads, 0, 1, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout3)
@@ -92,6 +112,7 @@ class UI_Preferences(object):
         _translate = QtCore.QCoreApplication.translate
         Preferences.setWindowTitle(_translate("Preferences", "Preferences"))
         self.inTitle1.setText(_translate("Preferences", "Preferences :"))
+        self.nProxyThreadsLbl.setText(_translate("Preferences", "Number of Threads in ProxyCheck"))
         self.nProxyLbl.setText(_translate("Preferences", "Number of Proxies"))
         self.nThreadsLbl.setText(_translate("Preferences", "Number of Threads"))
         self.cancelbtn.setText(_translate("Preferences", "CANCEL"))
@@ -99,11 +120,13 @@ class UI_Preferences(object):
     
     def getParameters(self):
         out = []
+        out.append(self.nProxyThreads.value())
         out.append(self.nProxy.value())
         out.append(self.nThreads.value())
         return out
     
-    def setParameters(self, nProxyVal, nThreadsval):
+    def setParameters(self, nProxyThreads, nProxyVal, nThreadsval):
+        self.nProxyThreads.setValue(nProxyThreads)
         self.nProxy.setValue(nProxyVal)
         self.nThreads.setValue(nThreadsval)
 
