@@ -8,9 +8,10 @@ TIMEOUT = 10
 FINISH = False
 
 class proxyClass():
-    def __init__(self, proxyFile, nProxy, proxyPoolSize, consoleDisp):
-        self.consoleDisp = consoleDisp
+    def __init__(self, proxyFile, nProxy, proxyPoolSize, signals):
+        self.signals = signals
         self.needs = nProxy
+        self.currentText = ""
         if proxyFile == False:
             self.initWebScrape()
         else:
@@ -22,7 +23,8 @@ class proxyClass():
         with open(proxyFile, 'r') as f:
             self.proxyList = [line.strip() for line in f]
             #print("\n".join(self.proxyList))
-        print("successfully loaded {} proxies.\n".format(len(self.proxyList)))
+        self.currentText = "successfully loaded {} proxies.\n".format(len(self.proxyList))
+        self.signals.console.emit(self.currentText)
 
     def initWebScrape(self):
         # I'm keeping this overly complicated version in case of needing to know if it's http or https
@@ -44,8 +46,8 @@ class proxyClass():
                     temp = temp+":"+elem
                     self.proxyList.append(temp)
                 current += 1
-            self.consoleDisp.setPlainText("found {} proxies at https://free-proxy-list.net/".format(len(self.proxyList)))
-            QtWidgets.QApplication.processEvents()
+            self.currentText = "found {} proxies at https://free-proxy-list.net/".format(len(self.proxyList))
+            self.signals.console.emit(self.currentText)
 
         self.proxyList = []
         freeProxyListNet()
@@ -58,10 +60,10 @@ class proxyClass():
             r = requests.get(link, allow_redirects=True)
             out = r.content.decode("utf8").splitlines()
             self.proxyList = self.proxyList+out
-            self.consoleDisp.setPlainText(self.consoleDisp.toPlainText()+"\n"+"found {} proxies at {}".format(len(out),link))
-            QtWidgets.QApplication.processEvents()
-        self.consoleDisp.setPlainText(self.consoleDisp.toPlainText()+"\n"+"found {} proxies in total".format(len(self.proxyList)))
-        QtWidgets.QApplication.processEvents()
+            self.currentText = self.currentText+"\n"+"found {} proxies at {}".format(len(out),link)
+            self.signals.console.emit(self.currentText)
+        self.currentText = self.currentText+"\n"+"found {} proxies in total".format(len(self.proxyList))
+        self.signals.console.emit(self.currentText)
     def getProxies(self):
         return self.proxyList
 
@@ -102,16 +104,19 @@ class proxyClass():
         iterator = 0
         working = 0
         output = []
-        prevText = self.consoleDisp.toPlainText()
+        prevText = self.currentText
+        self.signals.console.emit("\nSetting up multithreading for proxies check ...")
+        lenProxyList = len(self.proxyList)
         try:
             vals = pool.imap(self.checkProxy, self.proxyList)
             for result in vals:
-                text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator+1),len(self.proxyList), working, self.needs)
+                text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator+1),lenProxyList, working, self.needs)
+                #self.progressBar.setValue(round(float(iterator+1)/lenProxyList*100))
+                self.signals.progress.emit(round(float(iterator+1)/lenProxyList*100))
                 if working >= self.needs:
                     self.proxyList = output
                     return output 
-                self.consoleDisp.setPlainText(prevText+"\n"+text)
-                QtWidgets.QApplication.processEvents()
+                self.signals.console.emit(prevText+"\n"+text)
                 #print(text, end="\r", flush=True)
                 if result != -1:
                     output.append(result)

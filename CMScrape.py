@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from graphicCMS import Ui_MainWindow, UI_Preferences
 from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QApplication, QAction
+from PyQt5.QtCore import pyqtSignal
 
 from scrapers import *
 from multiProcess import *
@@ -91,6 +92,62 @@ def csvSortFile(file):
 		# print(separator, file=out)
 		for i in range(len(toSortLines)):
 			print(toSortLines[i], file=out)
+
+#=############################################################=#
+# ----------------------- WORKER SIGNAL ---------------------- #
+
+class WorkerSignals(QtCore.QObject):
+    '''
+    Defines the signals available from a running worker thread.
+
+    console
+    	string console display
+
+    progress
+        int use of the progressBar
+
+    '''
+    progress = pyqtSignal(int)
+    console = pyqtSignal(str)
+
+#=############################################################=#
+# ------------------------ WORKER CLASS ---------------------- #
+# I followed https://www.pythonguis.com/tutorials/multithreading-pyqt-applications-qthreadpool/
+# This tutorial. To avoid pyqt5 freezes.
+class Worker(QtCore.QRunnable):
+	'''
+	Worker thread
+	'''
+	def __init__(self, chosenFileLbl, chosenOutLbl, chosenStatLbl, nThreads, nProxiesThreads, nProxy):
+		super(Worker, self).__init__()
+		# run's variables
+		self.chosenIn = chosenFileLbl
+		self.chosenOut = chosenOutLbl
+		self.chosenStat = chosenStatLbl
+		self.nThreads = nThreads
+		self.nProxiesThreads = nProxiesThreads
+		self.nProxy = nProxy
+
+		self.signals = WorkerSignals()
+
+	def run(self):
+		'''
+		Your code goes in this function
+		'''
+		if self.chosenIn == "No file chosen":
+			self.signals.console.emit("[ERROR]\nPlease Chose an input file before running.")
+		else:
+			isOut = False
+			isStat = False
+			inFile = self.chosenIn
+			if self.chosenOut != "No file chosen":
+				isOut = self.chosenOut
+			if self.chosenStat != "No file chosen":
+				isStat = self.chosenStat
+
+			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.signals)
+
+
 
 #=############################################################=#
 # --------------------- PREFERENCE DIALOG -------------------- #
@@ -183,6 +240,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.nProxy = 0
 		self.nProxiesThreads = 0
 		self.proxyFile = 'test'
+		self.threadpool = QtCore.QThreadPool()
 		self.loadConfig()
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
@@ -216,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getOpenFileName(self,"Chose desired input file","","All Files (*);;Text Files (*.txt)", options=options)
+		fileName, _ = self.fileDialog.getOpenFileName(self,"Chose desired input file","","Text Files (*.txt)", options=options)
 		if fileName:
 			# print(fileName)
 			self.inputFileChosen = fileName
@@ -229,7 +287,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired output file","","All Files (*);;Text Files (*.txt)", options=options)
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired output file","","csv Files (*.csv)", options=options)
 		if fileName:
 			# print(fileName)
 			self.outputFileChosen = fileName
@@ -242,30 +300,50 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired statistics file","","All Files (*);;Text Files (*.txt)", options=options)
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired statistics file","","csv Files (*.csv)", options=options)
 		if fileName:
 			# print(fileName)
 			self.statFileChosen = fileName
 			self.chosenStatLbl.setText(str(fileName))
 			self.chosenStatLbl.adjustSize()
 
-	def run(self):
-		if self.chosenFileLbl.text() == "No file chosen":
-			msg = QMessageBox()
-			msg.setIcon(QMessageBox.Critical)
-			msg.setText("Error")
-			msg.setInformativeText('Please chose an input file')
-			msg.setWindowTitle("Error - No File Chosen")
-			msg.exec_()
+	def update_progress(self,n):
+		if n == -1:
+			# Proxies !
+			self.progressBar.setStyleSheet("QProgressBar{\n"
+"    border: 2px solid rgb(19, 148, 195);\n"
+"    border-radius: 5px;\n"
+"    text-align: center\n"
+"}\n"
+"\n"
+"QProgressBar::chunk {\n"
+"    background-color: rgb(56, 188, 236);\n"
+"    width: 10px;\n"
+"}")
+		elif n == -2:
+			# Scraper !
+			self.progressBar.setStyleSheet("QProgressBar{\n"
+"    border: 2px solid rgb(139, 28, 59);\n"
+"    border-radius: 5px;\n"
+"    text-align: center\n"
+"}\n"
+"\n"
+"QProgressBar::chunk {\n"
+"    background-color: rgb(172, 35, 72);\n"
+"    width: 10px;\n"
+"}")
 		else:
-			isOut = False
-			isStat = False
-			inFile = self.chosenFileLbl.text()
-			if self.chosenOutLbl.text() != "No file chosen":
-				isOut = self.chosenOutLbl.text();
-			if self.chosenStatLbl.text() != "No file chosen":
-				isStat = self.chosenStatLbl.text()
-			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.consoleDisp)
+			self.progressBar.setValue(n)
+
+	def update_console(self,toPrint):
+		self.consoleDisp.setPlainText(toPrint)
+		QtWidgets.QApplication.processEvents()
+
+	def run(self):
+		worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy)
+		self.threadpool.start(worker)
+		worker.signals.progress.connect(self.update_progress)
+		worker.signals.console.connect(self.update_console)
 
 #=############################################################=#
 # ------------------------- GRAPHIC -------------------------- #

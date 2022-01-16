@@ -6,7 +6,7 @@ Collectibles price tracker from Cardmarket links.
 This tool aims to **gain time** when checking a collection's price on CardMarket.  
 The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt). Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.  
 The DBScrape part is currently not working. In Fine, I want it to scrape CardMarket as a whole to get all the cards in links, as  
-`"Name, Expansion, URL"`  
+`"Name, Extension, URL"`  
 Or something similar.  
 
 #### About the prices.  
@@ -17,22 +17,23 @@ Trend and mean do not take into account the parameters. In my opinion, they are 
 
 ### Demo :
 You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://www.youtube.com/watch?v=3Wjy0_205oI).
+/!\ This demo is obsolete, it's way faster now. Will make a new one later.
 
 ![Demo](.github/images/CMScrape_Demo.gif)
 
 ## Current state :
-This project is currently in developpment. It works but was never intensly tested.
+This project is currently in developpment. It works and is tested on ubuntu 16.04 and windows 10, mostly on yugioh and pokemon cards.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
-Note : this project was developped on Ubuntu 16.04. If you face any issue witht he execution, please let me know.
+Note : this project was developped on Ubuntu 16.04. If you face any issue with the execution, please let me know.
 
 ## Current preoccupations :
-I am currently trying to make the best possible GUI using PyQt5. I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
+I am currently trying to make a fully functionning multithreaded version, with auto-rotating proxies, either from user input, or from a python proxy scraper and checker I made, [available here](https://github.com/DrankRock/ProxyScrape-And-Check). I am also trying to get a full database of CardMarket links to facilitate the creation of the list of links. I would like to have it in a "Game-Expansion-Number-Name-URL" form, to create a Database in the future and facilitate the access of the data. 
 
 ## TODO :
 Add MultiThreading 
-#### MultiProcessing was successfully added, but CM blocks requests after 30 tries. I will be trying to solve this using proxies, and i'm currently looking into https://github.com/Ge0rg3/requests-ip-rotator to avoid users to have to use their own proxies. If you want to try the cores, add "--cores [number of cores]" at the end of the command.
-Find testers to have some feedback  
+#### MultiThreading is currently working, but might crash your computer, if so, please let me know.
+Find testers to have more feedbacks
 Add a tool to create the list, using CM's database to add full expansions, search by names etc  
 Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)  
 

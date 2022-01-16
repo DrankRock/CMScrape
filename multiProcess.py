@@ -62,6 +62,8 @@ headers_list = [{
 #url = 'https://www.cardmarket.com/en'
 prox = None
 session = None
+currentText = ""
+
 
 def init_process():
 	global session
@@ -85,14 +87,16 @@ def fun1(url):
 	soup = BeautifulSoup(response.text, 'lxml')
 	return scrapers.CMSoupScraper(url, soup)
 
-def multiMap(urlList, poolSize, outFile, statFile,consoleDisp, poolType):
+def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
+	global currentText
 	if outFile != False:		
 		opened_outFile = open(outFile, 'w')
 	else:
 		opened_outFile = open(os.devnull, 'w')
 	csv_writer = csv.writer(opened_outFile)
 	csv_writer.writerow(['game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
-
+	currentText = "Starting multithreading ..."
+	signals.console.emit(currentText)
 	iterator = 1
 	workingIterator = 0
 	nURL = len(urlList)
@@ -119,9 +123,9 @@ def multiMap(urlList, poolSize, outFile, statFile,consoleDisp, poolType):
 				except:
 					pass
 				#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
-				consoleDisp.setPlainText("[{}/{}] Prices: \n\tTotal minimum price = {}; \n\tTotal trending price = {}; \n\tTotal mean 30d price = {}".format(iterator, nURL,round(minPrice,3),round(trendPrice,3),round(mean30Price,3)))
-				
-				QtWidgets.QApplication.processEvents()
+				currentText = "[{}/{}] Prices: \n\tTotal minimum price = {}; \n\tTotal trending price = {}; \n\tTotal mean 30d price = {}\n(please be patient, it takes some time, and the console output isn't very smooth)".format(iterator, nURL,round(minPrice,3),round(trendPrice,3),round(mean30Price,3))
+				signals.console.emit(currentText)
+				signals.progress.emit(round(float(iterator)/nURL*100))
 				workingIterator += 1
 				csv_writer.writerow(scrapes)
 			iterator += 1
@@ -132,7 +136,8 @@ def multiMap(urlList, poolSize, outFile, statFile,consoleDisp, poolType):
 		p.close()
 		p.join()
 		print("Processes stopped.")
-	print("\nSuccessfully scraped {} out of {} links.".format(workingIterator, nURL))
+	currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator, nURL)
+	signals.console.emit(currentText)
 	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
 	if statFile != False:		
 		with open(statFile, 'a') as f:
@@ -144,21 +149,28 @@ def multiMap(urlList, poolSize, outFile, statFile,consoleDisp, poolType):
 #		results = p.map(fun1, urlList):
 #		for line in results:
 
-def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, consoleDisp):
+def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, signals):
 	global prox
+	global currentText
 	if poolSize < 1:
 		print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
 		sys.exit(1)
-	prox = proxyClass(False, nProxy, proxyPoolSize, consoleDisp)
+	signals.progress.emit(-1) # change stylesheet to proxy
+	prox = proxyClass(False, nProxy, proxyPoolSize, signals)
 	prox.checkProxies()
-
-	consoleDisp.setPlainText("Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)")
+	currentText = "Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)"
+	signals.console.emit(currentText)
 	start = time.time()
 
 	with open(inputFile, 'r') as f:
 		urlList = f.read().splitlines()
 	f.close()
 
-	output_list = multiMap(urlList, poolSize, outFile, statFile, consoleDisp, 'Threads')
-	consoleDisp.setPlainText(consoleDisp.toPlainText()+"\n"+"Operation lasted {} seconds.\nFiles were successfully written.".format(round(time.time()-start),3))
-	QtWidgets.QApplication.processEvents()
+	signals.progress.emit(-2) # change stylesheet to scraping
+	output_list = multiMap(urlList, poolSize, outFile, statFile, signals, 'Threads')
+	currentText = currentText + "\nOperation lasted {} seconds.".format(round(time.time()-start),3)
+	if outFile != False:
+		currentText = currentText + "\nSuccessfully wrote output file in :\n{}".format(outFile)
+	if statFile != False:
+		currentText = currentText + "\nSuccessfully wrote statistics file in :\n{}".format(statFile)
+	signals.console.emit(currentText)
