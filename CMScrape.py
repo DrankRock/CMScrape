@@ -118,7 +118,7 @@ class Worker(QtCore.QRunnable):
 	'''
 	Worker thread
 	'''
-	def __init__(self, chosenFileLbl, chosenOutLbl, chosenStatLbl, nThreads, nProxiesThreads, nProxy):
+	def __init__(self, chosenFileLbl, chosenOutLbl, chosenStatLbl, nThreads, nProxiesThreads, nProxy, proxyFile, useProxyFile, checkProxyFile):
 		super(Worker, self).__init__()
 		# run's variables
 		self.chosenIn = chosenFileLbl
@@ -127,6 +127,9 @@ class Worker(QtCore.QRunnable):
 		self.nThreads = nThreads
 		self.nProxiesThreads = nProxiesThreads
 		self.nProxy = nProxy
+		self.proxyFile = proxyFile
+		self.useProxyFile = useProxyFile
+		self.checkProxyFile = checkProxyFile
 
 		self.signals = WorkerSignals()
 
@@ -134,6 +137,7 @@ class Worker(QtCore.QRunnable):
 		'''
 		Your code goes in this function
 		'''
+		print("run")
 		if self.chosenIn == "No file chosen":
 			self.signals.console.emit("[ERROR]\nPlease Chose an input file before running.")
 		else:
@@ -144,8 +148,9 @@ class Worker(QtCore.QRunnable):
 				isOut = self.chosenOut
 			if self.chosenStat != "No file chosen":
 				isStat = self.chosenStat
-
-			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.signals)
+			if isOut == False and isStat == False:
+				self.signals.console.emit("[WARNING]\nYou did not choose any type of output.")
+			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.proxyFile, self.useProxyFile, self.checkProxyFile, self.signals)
 
 
 
@@ -189,16 +194,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			msg.exec_()
 		def preferencesTriggered():
 			dialog = PreferencesDialog(self)
-			dialog.setParameters(self.nProxiesThreads, self.nProxy,self.nThreads)
+			dialog.setParameters(self.nProxiesThreads, self.nProxy,self.nThreads, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk)
 			result = dialog.exec_()
 			if result == dialog.Accepted:
 				resultList = dialog.getData()
 				self.nProxiesThreads = resultList[0]
 				self.nProxy = resultList[1]
 				self.nThreads = resultList[2]
-				self.consoleDisp.setPlainText("Number of Proxies is now : {}\nNumber of Threads is now : {}".format(self.nProxiesThreads, self.nProxy, self.nThreads))
+				self.proxyFilePath = resultList[3]
+				self.useProxyFileChk = resultList[4]
+				self.checkProxyFileChk = resultList[5]
+				self.consoleDisp.setPlainText("Number of Proxies is now : {}, checked on {} threads\nA proxy file is used : {} - proxy file needs checking : {}\nIf a proxyFile is used, its path is :\"{}\"\n\nNumber of Threads for scraping is now : {}".format(self.nProxy, self.nProxiesThreads, self.useProxyFileChk, self.checkProxyFileChk, self.proxyFilePath, self.nThreads))
 				with open('.cmscrape','w') as f:
-					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy))
+					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk))
 
 		menuBar = self.menuBar()
 
@@ -239,7 +247,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.nThreads = 0
 		self.nProxy = 0
 		self.nProxiesThreads = 0
-		self.proxyFile = 'test'
+		self.proxyFilePath = ''
+		self.useProxyFileChk = False
+		self.checkProxyFileChk = False
+		self.inputFolderPath = ''
+		self.outputFolderPath = ''
+		self.statFolderPath = ''
 		self.threadpool = QtCore.QThreadPool()
 		self.loadConfig()
 		self._createMenuBar()
@@ -247,6 +260,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.statBtn.clicked.connect(self.statFileDialog)
 		self.outputBtn.clicked.connect(self.outputFileDialog)
 		self.runBtn.clicked.connect(self.run)
+
+	def updateConfig(self, toModify, value):
+		if toModify == 1:
+			self.inputFolderPath = value
+		elif toModify == 2:
+			self.outputFolderPath = value
+		elif toModify == 3:
+			self.statFolderPath = value
+		with open('.cmscrape','w') as f:
+			f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath))
+
 
 	def loadConfig(self):
 		if os.path.exists('.cmscrape'):
@@ -257,16 +281,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				split_line = line.split(" : ")
 				if split_line[0] == "'Threads'":
 					self.nThreads = int(split_line[1])
+			## PROXIES
 				if split_line[0] == "'Proxies'":
 					self.nProxy = int(split_line[1])
 				if split_line[0] == "'ProxiesThreads'":
 					self.nProxiesThreads = int(split_line[1])
+				if split_line[0] == "'ProxyFilePath'":
+					self.proxyFilePath = str(split_line[1])
+				if split_line[0] == "'useProxyFile'":
+					self.useProxyFileChk = bool(split_line[1])
+				if split_line[0] == "'checkProxyFile'":
+					self.checkProxyFileChk = bool(split_line[1])
+			## I/O
+				if split_line[0] == "'InputFolder'":
+					self.inputFolderPath = str(split_line[1])
+				if split_line[0] == "'OutputFolder'":
+					self.outputFolderPath = str(split_line[1])
+				if split_line[0] == "'StatFolder'":
+					self.statFolderPath = str(split_line[1])
 		else:
 			with open('.cmscrape','w') as f:
 				self.nThreads = 40
 				self.nProxy = 50
 				self.nProxiesThreads = 50
-				f.write("'ProxiesThreads' : 50\n'Threads' : 40\n'Proxies' : 50")
+				self.proxyFilePath = ''
+				self.useProxyFileChk = False
+				self.checkProxyFileChk = False
+				self.inputFolderPath = ''
+				self.outputFolderPath = ''
+				self.statFolderPath = ''
+				f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath))
 
 	def inputFileDialog(self):
 		self.fileDialog = QFileDialog()
@@ -274,7 +318,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getOpenFileName(self,"Chose desired input file","","Text Files (*.txt)", options=options)
+		fileName, _ = self.fileDialog.getOpenFileName(self,"Chose desired input file",self.inputFolderPath,"Text Files (*.txt)", options=options)
 		if fileName:
 			# print(fileName)
 			self.inputFileChosen = fileName
@@ -287,7 +331,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired output file","","csv Files (*.csv)", options=options)
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired output file",self.outputFolderPath,"csv Files (*.csv)", options=options)
 		if fileName:
 			# print(fileName)
 			self.outputFileChosen = fileName
@@ -300,7 +344,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		options |= self.fileDialog.DontUseNativeDialog
 		#options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
 		#filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
-		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired statistics file","","csv Files (*.csv)", options=options)
+		fileName, _ = self.fileDialog.getSaveFileName(self,"Chose or create desired statistics file",self.statFolderPath,"csv Files (*.csv)", options=options)
 		if fileName:
 			# print(fileName)
 			self.statFileChosen = fileName
@@ -340,7 +384,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		QtWidgets.QApplication.processEvents()
 
 	def run(self):
-		worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy)
+		if self.chosenFileLbl.text() != "No file chosen":
+			self.updateConfig(1, os.path.dirname(self.chosenFileLbl.text()))
+		if self.chosenOutLbl.text() != "No file chosen":
+			self.updateConfig(2, os.path.dirname(self.chosenOutLbl.text()))
+		if self.chosenStatLbl.text() != "No file chosen":
+			self.updateConfig(3, os.path.dirname(self.chosenStatLbl.text()))
+
+		worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk)
 		self.threadpool.start(worker)
 		worker.signals.progress.connect(self.update_progress)
 		worker.signals.console.connect(self.update_console)

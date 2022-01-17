@@ -95,7 +95,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 		opened_outFile = open(os.devnull, 'w')
 	csv_writer = csv.writer(opened_outFile)
 	csv_writer.writerow(['game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
-	currentText = "Starting multithreading ..."
+	currentText = "Starting multithreading for scraping ..."
 	signals.console.emit(currentText)
 	iterator = 1
 	workingIterator = 0
@@ -149,15 +149,21 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 #		results = p.map(fun1, urlList):
 #		for line in results:
 
-def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, signals):
+def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, proxyFile, useProxyFile, checkProxyFile, signals):
 	global prox
 	global currentText
 	if poolSize < 1:
 		print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
 		sys.exit(1)
 	signals.progress.emit(-1) # change stylesheet to proxy
-	prox = proxyClass(False, nProxy, proxyPoolSize, signals)
-	prox.checkProxies()
+
+	prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
+
+	if proxyFile != '' and checkProxyFile == False:
+		currentText = currentText+"\nLaunching scraping without testing the proxies.. \n*pssst* be careful we have a badass here..\n"
+		signals.console.emit(currentText)
+	else:
+		prox.checkProxies()
 	currentText = "Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)"
 	signals.console.emit(currentText)
 	start = time.time()
@@ -167,6 +173,7 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 	f.close()
 
 	signals.progress.emit(-2) # change stylesheet to scraping
+	signals.progress.emit(0)
 	output_list = multiMap(urlList, poolSize, outFile, statFile, signals, 'Threads')
 	currentText = currentText + "\nOperation lasted {} seconds.".format(round(time.time()-start),3)
 	if outFile != False:

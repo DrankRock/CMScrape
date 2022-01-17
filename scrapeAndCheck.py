@@ -7,23 +7,40 @@ WEBPAGE = 'https://www.cardmarket.com/en'
 TIMEOUT = 10
 FINISH = False
 
+### TODO :
+# https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=4350&country=all&ssl=all&anonymity=all&simplified=true
+# but needs to download the file
+# https://proxylist.geonode.com/api/proxy-list?limit=700&page=1&sort_by=lastChecked&sort_type=desc
+# but needs some scraping, it's json, plus it's not https only
+# solves the https problem :
+# https://proxylist.geonode.com/api/proxy-list?limit=700&page=1&sort_by=lastChecked&sort_type=desc&protocols=http%2Chttps
+# https://spys.one/en/https-ssl-proxy/
+# needs scraping
 class proxyClass():
-    def __init__(self, proxyFile, nProxy, proxyPoolSize, signals):
-        self.signals = signals
+    def __init__(self, nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals):
+        print("Initialize proxyclass")
         self.needs = nProxy
+        self.nProcess = proxyPoolSize
+        self.proxyFile = proxyFile
+        self.useProxyFile = useProxyFile
+        self.checkProxyFile = checkProxyFile
+        self.signals = signals
+
         self.currentText = ""
-        if proxyFile == False:
+        if proxyFile == '' or useProxyFile == False:
+            #print("Initialize webscraping for proxies")
             self.initWebScrape()
         else:
+            #print("Initialize list from file for proxies with {}".format(proxyFile))
             self.initFileProxy(proxyFile)
         random.shuffle(self.proxyList)
-        self.nProcess = proxyPoolSize
+        
 
     def initFileProxy(self, proxyFile):
         with open(proxyFile, 'r') as f:
             self.proxyList = [line.strip() for line in f]
             #print("\n".join(self.proxyList))
-        self.currentText = "successfully loaded {} proxies.\n".format(len(self.proxyList))
+        self.currentText = "Successfully loaded {} proxies from file {}\n".format(len(self.proxyList),self.proxyFile)
         self.signals.console.emit(self.currentText)
 
     def initWebScrape(self):
@@ -105,7 +122,7 @@ class proxyClass():
         working = 0
         output = []
         prevText = self.currentText
-        self.signals.console.emit("\nSetting up multithreading for proxies check ...")
+        self.signals.console.emit("Setting up multithreading for proxies check ...")
         lenProxyList = len(self.proxyList)
         try:
             vals = pool.imap(self.checkProxy, self.proxyList)

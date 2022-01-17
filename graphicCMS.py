@@ -28,18 +28,40 @@ class UI_Preferences(object):
     def setupUi(self, Preferences):
         Preferences.setObjectName("Preferences")
         Preferences.resize(int(SCREEN_WIDTH/2.7), int(SCREEN_HEIGHT/4.8))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        Preferences.setFixedSize(int(SCREEN_WIDTH/2.7), int(SCREEN_HEIGHT/3.5))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(Preferences.sizePolicy().hasHeightForWidth())
         Preferences.setSizePolicy(sizePolicy)
+
         self.verticalLayout = QtWidgets.QVBoxLayout(Preferences)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.inTitle1 = QtWidgets.QLabel(Preferences)
-        self.inTitle1.setMinimumSize(QtCore.QSize(100, 20))
-        self.inTitle1.setObjectName("inTitle1")
-        self.verticalLayout.addWidget(self.inTitle1)
 
+        # Title
+        self.gridLayoutTi = QtWidgets.QGridLayout()
+        self.gridLayoutTi.setObjectName('gridLayoutTi')
+        self.inTitle1 = QtWidgets.QLabel(Preferences)
+        self.inTitle1.setMinimumSize(PreferenceLblMinSize)
+        self.inTitle1.setBaseSize(PreferenceLblMinSize)
+        self.inTitle1.setObjectName("inTitle1")
+        self.gridLayoutTi.addWidget(self.inTitle1, 0, 0, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayoutTi)
+
+        ## Number of Threads in scraping
+        self.gridLayout3 = QtWidgets.QGridLayout()
+        self.gridLayout3.setObjectName('gridLayout3')
+        self.nThreadsLbl = QtWidgets.QLabel(Preferences)
+        self.nThreadsLbl.setMinimumSize(PreferenceLblMinSize)
+        self.nThreadsLbl.setObjectName('nThreadsLbl')
+        self.gridLayout3.addWidget(self.nThreadsLbl, 0, 0, 1, 1)
+        self.nThreads = QtWidgets.QSpinBox(Preferences)
+        self.nThreads.setMinimumSize(PreferenceSpinBoxMinSize)
+        self.nThreads.setBaseSize(PreferenceSpinBoxMinSize)
+        self.nThreads.setObjectName('nThreads')
+        self.nThreads.setMaximum(_MAXVALUE_)
+        self.gridLayout3.addWidget(self.nThreads, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayout3)
+        
         ## Number of Threads in proxyChecking
         self.gridLayoutTproxyCheck = QtWidgets.QGridLayout()
         self.gridLayoutTproxyCheck.setObjectName('gridLayoutTproxyCheck')
@@ -72,25 +94,38 @@ class UI_Preferences(object):
         self.gridLayoutnProxyNeeded.addWidget(self.nProxy, 0, 1, 1, 1)
         self.verticalLayout.addLayout(self.gridLayoutnProxyNeeded)
 
-        ## Number of Threads in scraping
-        self.gridLayout3 = QtWidgets.QGridLayout()
-        self.gridLayout3.setObjectName('gridLayout3')
-        self.nThreadsLbl = QtWidgets.QLabel(Preferences)
-        self.nThreadsLbl.setMinimumSize(PreferenceLblMinSize)
-        self.nThreadsLbl.setObjectName('nThreadsLbl')
-        self.gridLayout3.addWidget(self.nThreadsLbl, 0, 0, 1, 1)
-        self.nThreads = QtWidgets.QSpinBox(Preferences)
-        self.nThreads.setMinimumSize(PreferenceSpinBoxMinSize)
-        self.nThreads.setBaseSize(PreferenceSpinBoxMinSize)
-        self.nThreads.setObjectName('nThreads')
-        self.gridLayout3.addWidget(self.nThreads, 0, 1, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout3)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.nThreads.sizePolicy().hasHeightForWidth())
-        self.nThreads.setMaximum(_MAXVALUE_)
-        ####
+        ## Using a proxyFile
+        self.gridLayoutUseProxyFile = QtWidgets.QGridLayout()
+        self.gridLayoutUseProxyFile.setObjectName('gridLayoutUseProxyFile')
+
+        self.useProxyFileLbl = QtWidgets.QLabel(Preferences)
+        self.useProxyFileLbl.setMinimumSize(PreferenceLblMinSize)
+        self.useProxyFileLbl.setObjectName('useProxyFileLbl')
+        self.gridLayoutUseProxyFile.addWidget(self.useProxyFileLbl, 0, 0, 1, 1)
+
+        self.useProxyFile = QtWidgets.QLineEdit(Preferences)
+        self.useProxyFile.setMinimumSize(PreferenceSpinBoxMinSize)
+        self.useProxyFile.setObjectName('useProxyFile')
+        self.gridLayoutUseProxyFile.addWidget(self.useProxyFile, 0, 1, 1, 1)
+        self.verticalLayout.addLayout(self.gridLayoutUseProxyFile)
+
+        ## Using Proxyfile - checkboxes
+        self.gridLayoutUseProxyFile2 = QtWidgets.QGridLayout()
+        self.gridLayoutUseProxyFile2.setObjectName('gridLayoutUseProxyFile2')
+
+        self.useProxyFileCheckBox = QtWidgets.QCheckBox("Use proxy file")
+        self.useProxyFileCheckBox.setMinimumSize(PreferenceLblMinSize)
+        self.useProxyFileCheckBox.setObjectName('useProxyFileCheckBox')
+        self.gridLayoutUseProxyFile2.addWidget(self.useProxyFileCheckBox, 0, 0, 1, 1)
+
+        self.checkProxyFileCheckBox = QtWidgets.QCheckBox("Check proxy file")
+        self.checkProxyFileCheckBox.setMinimumSize(PreferenceLblMinSize)
+        self.checkProxyFileCheckBox.setObjectName('checkProxyFileCheckBox')
+        self.gridLayoutUseProxyFile2.addWidget(self.checkProxyFileCheckBox, 0, 1, 1, 1)
+
+        self.verticalLayout.addLayout(self.gridLayoutUseProxyFile2)
+
+        ## Buttons
         self.buttonGridLayout4 = QtWidgets.QGridLayout()
         self.buttonGridLayout4.setObjectName("buttonGridLayout4")
         self.cancelbtn = QtWidgets.QPushButton(Preferences)
@@ -104,7 +139,7 @@ class UI_Preferences(object):
         self.addbtn.setStyleSheet(GreenButtonStyleSheet)
         self.buttonGridLayout4.addWidget(self.addbtn, 0, 1, 1, 1)
         self.verticalLayout.addLayout(self.buttonGridLayout4)
-        
+
         self.retranslateUi(Preferences)
         QtCore.QMetaObject.connectSlotsByName(Preferences)
     
@@ -113,6 +148,7 @@ class UI_Preferences(object):
         Preferences.setWindowTitle(_translate("Preferences", "Preferences"))
         self.inTitle1.setText(_translate("Preferences", "Preferences :"))
         self.nProxyThreadsLbl.setText(_translate("Preferences", "Number of Threads in ProxyCheck"))
+        self.useProxyFileLbl.setText(_translate("Preferences", "Use a file containing proxies"))
         self.nProxyLbl.setText(_translate("Preferences", "Number of Proxies"))
         self.nThreadsLbl.setText(_translate("Preferences", "Number of Threads"))
         self.cancelbtn.setText(_translate("Preferences", "CANCEL"))
@@ -123,12 +159,19 @@ class UI_Preferences(object):
         out.append(self.nProxyThreads.value())
         out.append(self.nProxy.value())
         out.append(self.nThreads.value())
+        out.append(self.useProxyFile.text())
+        out.append(self.useProxyFileCheckBox.isChecked())
+        out.append(self.checkProxyFileCheckBox.isChecked())
         return out
     
-    def setParameters(self, nProxyThreads, nProxyVal, nThreadsval):
+    def setParameters(self, nProxyThreads, nProxyVal, nThreadsval, proxyFilePath, useProxyFileChk, checkProxyFileChk):
         self.nProxyThreads.setValue(nProxyThreads)
         self.nProxy.setValue(nProxyVal)
         self.nThreads.setValue(nThreadsval)
+        self.useProxyFile.setText(proxyFilePath)
+        self.useProxyFileCheckBox.setChecked(useProxyFileChk)
+        self.checkProxyFileCheckBox.setChecked(checkProxyFileChk)
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
