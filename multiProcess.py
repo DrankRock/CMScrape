@@ -90,7 +90,7 @@ def fun1(url):
 	return scrapers.CMSoupScraper(url, soup)
 
 def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
-	print("multimap start")
+	#print("multimap start")
 	global currentText
 	if outFile != False:		
 		opened_outFile = open(outFile, 'w')
@@ -117,12 +117,12 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	else :
 		print("Unknown PoolType '{}' in multiMap (multiprocess.py).".format(poolType))
 		sys.exit(1)
-	print("multimap start scraping")
+	#print("multimap start scraping")
 	try:
 		for scrapes in p.imap(fun1, urlList):
 			if scrapes != -1:
 				current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
-				print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
+				#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
 				for iteration in range(urls_occurence_dictionnary.get(current_URL)):
 					try:
 						if scrapes[5] != 'None':
@@ -194,10 +194,10 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 	        urls_occurence_dictionnary[url] = 1
 	    else:
 	        urls_occurence_dictionnary[url] += 1
-	print(urls_occurence_dictionnary)
+	#print(urls_occurence_dictionnary)
 	urlList = list(urls_occurence_dictionnary.keys())
-	print(urlList)
-	print("UrlList[0] : {}\nurls_occurence_dictionnary.get(urlList[0]) : {}\n".format(urlList[0], urls_occurence_dictionnary.get(urlList[0])))
+	#print(urlList)
+	#print("UrlList[0] : {}\nurls_occurence_dictionnary.get(urlList[0]) : {}\n".format(urlList[0], urls_occurence_dictionnary.get(urlList[0])))
 	#sys.exit(1)
 
 	signals.progress.emit(-2) # change stylesheet to scraping
