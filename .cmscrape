@@ -1,3 +1,6 @@
 'ProxiesThreads' : 50
-'Threads' : 50
+'Threads' : 40
 'Proxies' : 50
+'ProxyFilePath' : http_proxies.txt
+'useProxyFile' : False
+'checkProxyFile' : True

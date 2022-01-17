@@ -289,9 +289,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				if split_line[0] == "'ProxyFilePath'":
 					self.proxyFilePath = str(split_line[1])
 				if split_line[0] == "'useProxyFile'":
-					self.useProxyFileChk = bool(split_line[1])
+					if split_line[1] == 'True':
+						self.useProxyFileChk = True
+					else:
+						self.useProxyFileChk = False
 				if split_line[0] == "'checkProxyFile'":
-					self.checkProxyFileChk = bool(split_line[1])
+					if split_line[1] == 'True':
+						self.checkProxyFileChk = True
+					else:
+						self.checkProxyFileChk = False
 			## I/O
 				if split_line[0] == "'InputFolder'":
 					self.inputFolderPath = str(split_line[1])
