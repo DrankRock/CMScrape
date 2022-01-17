@@ -261,6 +261,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.outputBtn.clicked.connect(self.outputFileDialog)
 		self.runBtn.clicked.connect(self.run)
 
+		self.DEBUG = False
+
 	def updateConfig(self, toModify, value):
 		if toModify == 1:
 			self.inputFolderPath = value
@@ -387,6 +389,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 	def update_console(self,toPrint):
 		self.consoleDisp.setPlainText(toPrint)
+		if self.DEBUG == True:
+			print(toPrint)
 		QtWidgets.QApplication.processEvents()
 
 	def run(self):

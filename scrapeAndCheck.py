@@ -122,7 +122,7 @@ class proxyClass():
         working = 0
         output = []
         prevText = self.currentText
-        self.signals.console.emit("Setting up multithreading for proxies check ...")
+        self.signals.console.emit(prevText+"Setting up multithreading for proxies check ...")
         lenProxyList = len(self.proxyList)
         try:
             vals = pool.imap(self.checkProxy, self.proxyList)
