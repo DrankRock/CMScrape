@@ -17,18 +17,6 @@ from PyQt5.QtCore import pyqtSignal
 from scrapers import *
 from multiProcess import *
 
-#-##############################-#
-# ---------- ✖︎ TODO ✔︎ -----------#
-#  	✖︎ - Finish the PyDoc	 		#
-#		✔︎ - Make a GUI			 		#
-#		✖︎ - GUI Console show	 		#
-#		✖︎ - Manage Exceptions   	#
-#		✖︎ - Multi Threading	   	#
-#		✖︎ - Remove console 			#
-#		✖︎ - Cancel Button				#
-#		✖︎ - Icon							#
-#-##############################-#
-
 """
 CMScrape is a scraping project with the objective to facilitate the use of CardMarket
 when tracking prices of all kind of collectibles.

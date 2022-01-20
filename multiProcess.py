@@ -154,7 +154,12 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 		with open(statFile, 'a') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=f)
-
+	msg = QtWidgets.QMessageBox()
+	msg.setIcon(QtWidgets.QMessageBox.Information)
+	msg.setText("CMScrape - Info")
+	msg.setInformativeText("Successfully scraped {} out of {} links.".format(workingIterator, total_number_of_url))
+	msg.setWindowTitle("Scraping done")
+	msg.exec();
 #def multiThreadMap(urlList):
 #	with ThreadPool(20, initializer=init_process) as p:
 #		results = p.map(fun1, urlList):

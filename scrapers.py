@@ -92,7 +92,7 @@ def CMSoupScraper(url, soup):
 		name_uncut = soup.find_all("div", class_="flex-grow-1")
 		
 		# in csv, if you want to show a " , you need to put a " before, so 24" tv -> 24"" tv
-		name = re.search('><h1>(.*)<span', str(name_uncut)).group(1).replace('"','""') 
+		name = re.search('><h1>(.*)<span', str(name_uncut)).group(1)
 
 		# Scraping all the variables in the same box as prices
 		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")
@@ -141,7 +141,7 @@ def CMSoupScraper(url, soup):
 		paramliste = paramScrap(params_ref)
 		# url has to be quoted to be seen as a string by csv viewer such as libreOffice, because it
 		# might contain coma, the seperator value.
-		paramliste.append('"{}"'.format(url))
+		paramliste.append(url)
 		returnListe = out+paramliste
 		# Returns a normal list. The objects within the list might contain unwanted ",", especially in the name and url areas.
 		#print("Done {}\n{}".format(url,returnListe))
