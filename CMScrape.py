@@ -96,6 +96,7 @@ class WorkerSignals(QtCore.QObject):
 
     '''
     progress = pyqtSignal(int)
+    end = pyqtSignal(int, int)
     console = pyqtSignal(str)
 
 #=############################################################=#
@@ -381,6 +382,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			print(toPrint)
 		QtWidgets.QApplication.processEvents()
 
+	def endQMessageBox(self, worked, total):
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Information)
+			msg.setInformativeText("Successfully scraped {} out of {} links.".format(worked, total))
+			msg.setWindowTitle("CMScrape - Info")
+			msg.exec_()
+
 	def run(self):
 		if self.chosenFileLbl.text() != "No file chosen":
 			self.updateConfig(1, os.path.dirname(self.chosenFileLbl.text()))
@@ -393,6 +401,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.threadpool.start(worker)
 		worker.signals.progress.connect(self.update_progress)
 		worker.signals.console.connect(self.update_console)
+		worker.signals.end.connect(self.endQMessageBox)
 
 #=############################################################=#
 # ------------------------- GRAPHIC -------------------------- #

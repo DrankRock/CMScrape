@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from requests.adapters import HTTPAdapter
 from datetime import datetime
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox
 
 from scrapeAndCheck import *
 import scrapers
@@ -154,12 +155,9 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 		with open(statFile, 'a') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=f)
-	msg = QtWidgets.QMessageBox()
-	msg.setIcon(QtWidgets.QMessageBox.Information)
-	msg.setText("CMScrape - Info")
-	msg.setInformativeText("Successfully scraped {} out of {} links.".format(workingIterator, total_number_of_url))
-	msg.setWindowTitle("Scraping done")
-	msg.exec();
+	return workingIterator
+
+
 #def multiThreadMap(urlList):
 #	with ThreadPool(20, initializer=init_process) as p:
 #		results = p.map(fun1, urlList):
@@ -207,10 +205,11 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 
 	signals.progress.emit(-2) # change stylesheet to scraping
 	signals.progress.emit(0)
-	output_list = multiMap(urlList, poolSize, outFile, statFile, signals, 'Threads')
+	working_iterator = multiMap(urlList, poolSize, outFile, statFile, signals, 'Threads')
 	currentText = currentText + "\nOperation lasted {} seconds.".format(round(time.time()-start),3)
 	if outFile != False:
 		currentText = currentText + "\nSuccessfully wrote output file in :\n{}".format(outFile)
 	if statFile != False:
 		currentText = currentText + "\nSuccessfully wrote statistics file in :\n{}".format(statFile)
 	signals.console.emit(currentText)
+	signals.end.emit(working_iterator, total_number_of_url)
