@@ -1,0 +1,22 @@
+{
+
+  "description": "Add cardmarket links to a list to be exported",
+  "manifest_version": 2,
+  "name": "CMScrape - List",
+  "version": "1.0",
+
+  "browser_action": {
+    "browser_style": true,
+    "default_popup": "popup/choose_page.html",
+    "default_icon": {
+      "48": "icons/logo_48.ico",
+      "96": "icons/logo_96.ico"
+    }
+  },
+
+  "permissions": [
+     "tabs",
+     "storage",
+     "*://www.cardmarket.com/*"
+  ]
+}

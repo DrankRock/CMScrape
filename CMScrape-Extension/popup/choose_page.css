@@ -1,0 +1,35 @@
+html, body {
+  width: 200px;
+}
+
+.select-this-url{
+  width: 100%;
+  padding: 4px;
+  font-size: 1.5em;
+  text-align: center;
+  cursor: pointer;
+}
+
+.Add{
+  background-color: #C8FF85;
+}
+
+.Export {
+  background-color: #A4CDF4;
+}
+
+.Clear {
+  background-color: #F76464;
+}
+
+.Add:hover {
+  background-color: #65B800;
+}
+
+.Export:hover {
+  background-color: #1973C8;
+}
+
+.Clear:hover {
+  background-color: #D50B0B;
+}
