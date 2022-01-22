@@ -98,7 +98,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	else:
 		opened_outFile = open(os.devnull, 'w')
 	# setup csv_writer for the output file
-	csv_writer = csv.writer(opened_outFile)
+	csv_writer = csv.writer(opened_outFile,  'w', newline='')
 	csv_writer.writerow(['game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
 	
 	currentText = "Starting multithreading for scraping ..."
@@ -152,7 +152,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	signals.console.emit(currentText)
 	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
 	if statFile != False:		
-		with open(statFile, 'a') as f:
+		with open(statFile, 'a', newline='') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=f)
 	return workingIterator
