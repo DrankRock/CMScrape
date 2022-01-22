@@ -94,11 +94,11 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	#print("multimap start")
 	global currentText
 	if outFile != False:		
-		opened_outFile = open(outFile, 'w')
+		opened_outFile = open(outFile, 'w', newline='')
 	else:
-		opened_outFile = open(os.devnull, 'w')
+		opened_outFile = open(os.devnull, 'w', newline='')
 	# setup csv_writer for the output file
-	csv_writer = csv.writer(opened_outFile,  'w', newline='')
+	csv_writer = csv.writer(opened_outFile)
 	csv_writer.writerow(['game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
 	
 	currentText = "Starting multithreading for scraping ..."
