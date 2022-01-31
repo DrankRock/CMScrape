@@ -7,7 +7,6 @@
 
   "browser_action": {
     "browser_style": true,
-    "default_popup": "popup/choose_page.html",
     "default_icon": {
       "48": "icons/logo_48.ico",
       "96": "icons/logo_96.ico"
@@ -16,7 +15,13 @@
 
   "permissions": [
      "tabs",
-     "storage",
-     "*://www.cardmarket.com/*"
+     "storage"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["*://www.cardmarket.com/*"],
+      "js": ["js/addButton.js"]
+    }
   ]
 }
