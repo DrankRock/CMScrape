@@ -90,6 +90,19 @@ def fun1(url):
 	soup = BeautifulSoup(response.text, 'lxml')
 	return scrapers.CMSoupScraper(url, soup)
 
+def fun1_noProxies(url):
+	while True:
+		try:
+			headers = random.choice(headers_list)
+			response = session.get(url,headers=headers,timeout=5)
+			#text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
+			#print("Done - {}".format(url))
+		except:
+			continue
+		break
+	soup = BeautifulSoup(response.text, 'lxml')
+	return scrapers.CMSoupScraper(url, soup)
+
 def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	#print("multimap start")
 	global currentText
@@ -119,8 +132,13 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 		print("Unknown PoolType '{}' in multiMap (multiprocess.py).".format(poolType))
 		sys.exit(1)
 	#print("multimap start scraping")
+
+	if poolSize == 1:
+		myFunction = fun1_noProxies
+	else:
+		myFunction = fun1
 	try:
-		for scrapes in p.imap(fun1, urlList):
+		for scrapes in p.imap(myFunction, urlList):
 			if scrapes != -1:
 				current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
 				#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
@@ -170,14 +188,14 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 		print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
 		sys.exit(1)
 	signals.progress.emit(-1) # change stylesheet to proxy
+	if poolSize != 1:
+		prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
 
-	prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
-
-	if proxyFile != '' and checkProxyFile == False and useProxyFile == True:
-		currentText = currentText+"\nLaunching scraping without testing the proxies.. \n*pssst* be careful we have a badass here..\n"
-		signals.console.emit(currentText)
-	else:
-		prox.checkProxies()
+		if proxyFile != '' and checkProxyFile == False and useProxyFile == True:
+			currentText = currentText+"\nLaunching scraping without testing the proxies.. \n*pssst* be careful we have a badass here..\n"
+			signals.console.emit(currentText)
+		else:
+			prox.checkProxies()
 	currentText = "Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)"
 	signals.console.emit(currentText)
 	start = time.time()

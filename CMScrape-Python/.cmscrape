@@ -1,9 +1,9 @@
 'ProxiesThreads' : 50
-'Threads' : 50
+'Threads' : 1
 'Proxies' : 50
 'ProxyFilePath' : https_proxies.txt
 'useProxyFile' : False
 'checkProxyFile' : False
-'InputFolder' : /home/mat/Downloads
+'InputFolder' : /home/mat/Projects/Python/CMScrape/exampleData
 'OutputFolder' : /home/mat/Projects/Python/CMScrape/exampleData
-'StatFolder' : 
+'StatFolder' : /home/mat/Projects/Python/CMScrape/exampleData
