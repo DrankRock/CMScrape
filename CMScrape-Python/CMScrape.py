@@ -25,7 +25,7 @@ https://github.com/DrankRock/CMScrape
 """
 
 TIMEOUT = 10
-
+MAXTHREADS = 50
 
 def helpMe():
 	print("-- CardMarket Scraper --")
@@ -193,6 +193,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				self.proxyFilePath = resultList[3]
 				self.useProxyFileChk = resultList[4]
 				self.checkProxyFileChk = resultList[5]
+				if self.nThreads > 50:
+					self.nThreads = 50
+					print("Number of thread can't be over 50, automatically maxed to 50.")
+				if self.nProxiesThreads > 50:
+					self.nProxiesThreads = 50
+					print("Number of thread can't be over 50, automatically maxed to 50.")
 				self.consoleDisp.setPlainText("Number of Proxies is now : {}, checked on {} threads\nA proxy file is used : {} - proxy file needs checking : {}\nIf a proxyFile is used, its path is :\"{}\"\n\nNumber of Threads for scraping is now : {}".format(self.nProxy, self.nProxiesThreads, self.useProxyFileChk, self.checkProxyFileChk, self.proxyFilePath, self.nThreads))
 				with open('.cmscrape','w') as f:
 					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk))
@@ -272,11 +278,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				split_line = line.split(" : ")
 				if split_line[0] == "'Threads'":
 					self.nThreads = int(split_line[1])
+					if self.nThreads > 50:
+						self.nThreads = 50
+						print("Number of thread can't be over 50, automatically maxed to 50.")
 			## PROXIES
 				if split_line[0] == "'Proxies'":
 					self.nProxy = int(split_line[1])
 				if split_line[0] == "'ProxiesThreads'":
 					self.nProxiesThreads = int(split_line[1])
+					if self.nProxiesThreads > 50:
+						self.nProxiesThreads = 50
+						print("Number of thread can't be over 50, automatically maxed to 50.")
 				if split_line[0] == "'ProxyFilePath'":
 					self.proxyFilePath = str(split_line[1])
 				if split_line[0] == "'useProxyFile'":
@@ -296,6 +308,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 					self.outputFolderPath = str(split_line[1])
 				if split_line[0] == "'StatFolder'":
 					self.statFolderPath = str(split_line[1])
+			if self.nThreads>MAXTHREADS or self.nProxiesThreads>MAXTHREADS:
+				print("ERROR : Can't run with over 50 Proxies. Please modify them using CTRL+P")
 		else:
 			with open('.cmscrape','w') as f:
 				self.nThreads = 40
@@ -396,12 +410,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.updateConfig(2, os.path.dirname(self.chosenOutLbl.text()))
 		if self.chosenStatLbl.text() != "No file chosen":
 			self.updateConfig(3, os.path.dirname(self.chosenStatLbl.text()))
-
-		worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk)
-		self.threadpool.start(worker)
-		worker.signals.progress.connect(self.update_progress)
-		worker.signals.console.connect(self.update_console)
-		worker.signals.end.connect(self.endQMessageBox)
+		if self.nThreads>MAXTHREADS or self.nProxiesThreads>MAXTHREADS:
+			print("ERROR : Can't run with over 50 Proxies. Please modify them using CTRL+P")
+		else:
+			worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk)
+			self.threadpool.start(worker)
+			worker.signals.progress.connect(self.update_progress)
+			worker.signals.console.connect(self.update_console)
+			worker.signals.end.connect(self.endQMessageBox)
 
 #=############################################################=#
 # ------------------------- GRAPHIC -------------------------- #
