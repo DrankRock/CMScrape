@@ -4,3 +4,6 @@
 'ProxyFilePath' : https_proxies.txt
 'useProxyFile' : False
 'checkProxyFile' : False
+'InputFolder' : /home/mat/Projects/Python/CMScrape/CMScrape-Python/exampleData
+'OutputFolder' : /home/mat/Projects/Python/CMScrape/CMScrape-Python/exampleData
+'StatFolder' : 
