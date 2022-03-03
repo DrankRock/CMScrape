@@ -26,15 +26,6 @@ If you have any suggestions or any kind of feedback, you can contact me on disco
 
 Note : this project was developped on Ubuntu 16.04. If you face any issue with the execution, please let me know.
 
-## Current preoccupations :
-I'm curretly working on a Firefox extension to create the list of links faster.  
-I will also extend the sources for the proxy scraper, and add a language option to CMScrape.
-I need to update the terminal version for a lighter execution.
-
-## TODO :
-Create a tool to add lots of cards to the list of links easily. I'm still in the thinking part.
-Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)   
-
 ## Download :
 ```shell
 # clone the repo
@@ -158,6 +149,16 @@ Below is an example of a not working example, because it does not contain trend/
 
 #### This works
 ![picture alt](https://github.com/DrankRock/CMScrape/blob/main/gitRessources/works.png "workingExample")
+
+### Dev Log :
+
+#### Current preoccupations :
+Through the Firefox extension and the app itself, my goal as of today is reached. I have an easy to use software to know the exact price of my collection. It supports proxies etc. 
+
+Small things can be improved, proxies added, interface made nicer especially on windows, a terminal only option (to run faster, and automatized runs), and I will be improving them in the future
+
+## TODO :
+Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)   
 
 ### Thanks to :
 The logo was created from another one created by Gregor Cresnar from the Noun Project.
