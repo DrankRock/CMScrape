@@ -88,7 +88,7 @@ When it's done, an information dialog will open, and some general informations w
 Shows the help :
 ```
 -- Python CardMarket Scraper --
-usage: CMScrape.py -i <input file or link> -o <outputfile> -s <statFile(optional)>
+usage: CMScrape.py
 Precisions about the results :
  _____________________
 |     minCondition    |
