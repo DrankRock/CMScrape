@@ -1,18 +1,30 @@
 # CMScrape
 Collectibles price tracker from Cardmarket links.
 
+### TL;DR
+```shell
+python CMScrape.py
+```
+
+> &rarr; select input file
+> 
+> &rarr; select output/statistics (minimalist output) file
+> 
+> &rarr; `ctrl+P` to check if the parameters are good for your use
+> 
+> &rarr; click run
+
+*voilà*
+
 ---
-### README
-This tool aims to **gain time** when checking a collection's price on CardMarket.   
-The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt). Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.   
+### OBJECTIVE
+This tool aims to **gain time** when checking a collection's price on CardMarket.
+### Setup
+The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt).  
+You can easily create this list using [CMScrape's Firefox Extension](https://github.com/DrankRock/CMScrape-Extension).  
+Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.   
 
-This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket.
-
-#### About the prices.   
-*MinPrice* is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.   
-*Mean30* is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.   
-*TrendPrice* is the trending price.   
-Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.    
+This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket. 
 
 ### Demo :
 You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://www.youtube.com/watch?v=3Wjy0_205oI).
@@ -20,7 +32,7 @@ You will find below an example of the execution with the latest version. If need
 
 ![Demo](.github/images/CMScrape_Demo.gif)
 
-## Current state :
+### Current state :
 This project is currently in developpment. It works and is tested on ubuntu 16.04 and windows 10, mostly on yugioh and pokemon cards.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
@@ -36,7 +48,7 @@ $ cd CMScrape/
 $ python -m pip install -r requirements.txt
 ```
 
-## Usage :
+## Use :
 `python3 CMScrape.py`
 
 ## How to :
@@ -46,20 +58,20 @@ Use the three buttons on the left to choose an input file, and either a Statisti
 ### Files :
 The **input** file should be a .txt file containing, on each line, a URL to a specific collectible from CardMarket. This can be cards, decks, boosters, deck boxes etc. As long as it's a collectible with a variable price, it will work. The input is enough to run the app, and if no outputs are given, the total prices will be written on the console.  
 The **output** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, it will be overwritten. For each url contained in the input file, the output file will contain a line with the informations :  
-`game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`
-in a coma separated form. The price and the url will be surrounded by `"`, which needs to be set as the String Delimiter in your csv viewer. (Libreoffice works well).
+`game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`  
+in a coma separated form. The price and the url will be surrounded by `"`, which needs to be set as the String Delimiter in your csv viewer. (Libreoffice works well).  
 The **statistics** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, the content of the file won't be overwritten, but a new line will be added at the end containing the informations. The statistics option outputs a single file with the informations :
-`current Time, sum of all the minimum prices, sum of all the trending prices, sum of all the "Mean 30 days" prices`
-in a coma separated form. This output aims to check the evolution of the collection as a whole.
+`current Time, sum of all the minimum prices, sum of all the trending prices, sum of all the "Mean 30 days" prices`  
+in a coma separated form. This output aims to check the evolution of the collection as a whole.  
 
 ### Parameters :
-You can and should select parameters to precise the behavior of the application. You can open the preferences menu in `Settings -> Preferences` or by pressig `Ctrl+P`.
-**Number of Threads** is the number of cardmarket pages you want to check simultaneously. A bigger number generally means more speed, but you are limited by the quality of your connexion, and the power of your computer. The default value, 50, gives good results. If you are going to check n url, putting more than n threads adds nothing.
-**Number of Threads in ProxyCheck** is the number of Proxies you want to check simultaneously. The need for proxies is explained in the next section.
-**Number of Proxies** is the maximum number of proxies you need.
-**Use a file containing proxies** is self-explanatory. Instead of searching online for proxies, put the path to a file containing your proxies (Https or Http) and it will be used. You can then choose if you want to use this file, and if you want CMScrape to check which proxies are working.  
+You can and should select parameters to precise the behavior of the application. You can open the preferences menu in `Settings -> Preferences` or by pressig `Ctrl+P`.   
+**Number of Threads** is the number of cardmarket pages you want to check simultaneously. A bigger number generally means more speed, but you are limited by the quality of your connexion, and the power of your computer. The default value, 50, gives good results. If you are going to check n url, putting more than n threads adds nothing.  
+**Number of Threads in ProxyCheck** is the number of Proxies you want to check simultaneously. The need for proxies is explained in the next section.  
+**Number of Proxies** is the maximum number of proxies you need.  
+**Use a file containing proxies** is self-explanatory. Instead of searching online for proxies, put the path to a file containing your proxies (Https or Http) and it will be used. You can then choose if you want to use this file, and if you want CMScrape to check which proxies are working.    
 
-All these options are saved in the `.cmscrape` file and will be loaded in the next execution.
+All these options are saved in the `.cmscrape` file and will be loaded in the next execution.  
 
 ### RUN :
 To explain what happens when CMScrape runs, I need to answer a question. If you understand the need for auto-rotating proxies, no need to read this subsection.
@@ -69,14 +81,20 @@ A proxy is like a mask that your connection puts on, to make the website think i
 When using on single thread, so one url by one, this limit is not reached. But once we go multithreaded, so checking many urls at once, cardmarket sees how fast we go and knows it's not a human doing that, and blocks the IP adress.
 This is why we need proxies.  
 
-Because this tool might be used by people who are not familiar with these technologies, I added a way to do this automatically. Instead of having to buy, or find proxies, CMScrape will go on various pages online and find free proxies, then check them.  
-Proxies need to be checked, because they will not always work. They depend on servers, etc. Non-working proxies will waste time and efficiency, so testing which ones work is necessary. With free proxies like the ones I'm scraping online, around 1 proxy in 10 is working.
+Because this tool might be used by people who are not familiar with these technologies, I added a way to do this **automatically**7. Instead of having to buy, or find proxies, CMScrape will go on various pages online and find free proxies, then check which ones are working.  
+Proxies need to be checked, because they will not always work. They depend on servers, etc. Non-working proxies will waste time and efficiency, so testing which ones work is necessary. With free proxies like the ones I'm scraping online, around 1 in 10 proxies is working.
 
 #### The running :
 As soon as the run button is clicked, if you did not put a proxy file, CMScrape will dowload free proxies on various sources, then check them.
 When enough working proxies are found (as specified in the preferences, or when all the proxies were checked), the scraping phase starts for all the links in the input file. For each link, the page is downloaded, informations are extracted and put in the selected output.
 
 When it's done, an information dialog will open, and some general informations will appear on the console.  
+
+#### About the prices.   
+*MinPrice* is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.   
+*Mean30* is the price as indicated on CardMarket, the mean selling/buying price of the last 30 days.   
+*TrendPrice* is the trending price.   
+Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
 
 ### Terminal's arguments :
 #### The current terminal version is obsolete, hasn't been maintained for a while. I will update it in the near future, and put all the options back on the README.md. I apologize for the inconvenience. I only left the -h / --help option as it will only work in terminal anyways, and still works.  
@@ -157,7 +175,7 @@ Through the Firefox extension and the app itself, my goal as of today is reached
 
 Small things can be improved, proxies added, interface made nicer especially on windows, a terminal only option (to run faster, and automatized runs), and I will be improving them in the future
 
-## TODO :
+#### TODO :
 Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)   
 
 ### Thanks to :
