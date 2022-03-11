@@ -1,7 +1,7 @@
 # CMScrape
 Collectibles price tracker from Cardmarket links.
 
-**CMScrape works on python 3.7, 3.8, 3.9 but NOT 3.10 because of an error in urllib3**
+**CMScrape works on Python 3.7 and 3.8, but not 3.9 because of an error with PyQt, or 3.10 because of an error with Urllib3**
 ### TL;DR
 ```shell
 python CMScrape.py
