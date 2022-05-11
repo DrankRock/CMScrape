@@ -126,7 +126,6 @@ class Worker(QtCore.QRunnable):
 		'''
 		Your code goes in this function
 		'''
-		print("run")
 		if self.chosenIn == "No file chosen":
 			self.signals.console.emit("[ERROR]\nPlease Chose an input file before running.")
 		else:

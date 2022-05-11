@@ -107,7 +107,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	#print("multimap start")
 	global currentText
 	if outFile != False:		
-		opened_outFile = open(outFile, 'w', newline='')
+		opened_outFile = open(outFile, 'w', newline='', encoding='utf-8')
 	else:
 		opened_outFile = open(os.devnull, 'w', newline='')
 	# setup csv_writer for the output file
@@ -170,7 +170,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 	signals.console.emit(currentText)
 	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
 	if statFile != False:		
-		with open(statFile, 'a', newline='') as f:
+		with open(statFile, 'a', newline='', encoding='utf-8') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 			print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=f)
 	return workingIterator

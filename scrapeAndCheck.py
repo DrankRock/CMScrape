@@ -18,7 +18,6 @@ FINISH = False
 # needs scraping
 class proxyClass():
     def __init__(self, nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals):
-        print("Initialize proxyclass")
         self.needs = nProxy
         self.nProcess = proxyPoolSize
         self.proxyFile = proxyFile
