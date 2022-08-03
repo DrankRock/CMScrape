@@ -3,7 +3,7 @@ import multiprocessing, time, requests, random, cchardet, lxml, csv, os, sys, tr
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import Pool
 from requests.adapters import HTTPAdapter
-from datetime import datetime
+from datetime import datetime, timedelta
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 
@@ -66,7 +66,15 @@ session = None
 currentText = ""
 urls_occurence_dictionnary = {}
 total_number_of_url = 0
+global TIME_MAX
+global CURRENT_VALUE_PROXYLESS
+global MAX_PROXYLESS_REQUESTS
 
+INCREMENT_VALUE = 120
+
+def incrementTime():
+	global TIME_MAX
+	TIME_MAX = TIME_MAX + timedelta(seconds=INCREMENT_VALUE)
 
 def init_process():
 	global session
@@ -91,7 +99,30 @@ def fun1(url):
 	return scrapers.CMSoupScraper(url, soup)
 
 def fun1_noProxies(url):
-	time.sleep(2)
+	global CURRENT_VALUE_PROXYLESS, MAX_PROXYLESS_REQUESTS, TIME_MAX
+	CURRENT_VALUE_PROXYLESS += 1
+	# if the current value is above the max authorized value per minutes, and the current time is below the one minute mark
+	# inform me that wait is needed
+
+	# while i'm in an impossible to link situation, 
+	while CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS and datetime.now() < TIME_MAX:
+		print("I'm informing you that wait is needed !\nExecuted requests = {} Time Remaining = {}".format(CURRENT_VALUE_PROXYLESS-1, TIME_MAX-datetime.now()))
+		time.sleep(1)
+	# if time issue is resolved
+	if CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS:
+		# increment time
+		incrementTime()
+		# set this link as the first
+		CURRENT_VALUE_PROXYLESS = 1
+
+
+	'''
+	while CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS :
+		if datetime.now() > TIME_MAX:
+			CURRENT_VALUE_PROXYLESS = 0
+			incrementTime()'''
+
+
 	while True:
 		try:
 			headers = random.choice(headers_list)
@@ -106,7 +137,12 @@ def fun1_noProxies(url):
 
 def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolType):
 	#print("multimap start")
-	global currentText
+	global currentText, MAX_PROXYLESS_REQUESTS, CURRENT_VALUE_PROXYLESS, TIME_MAX
+	noProxiesMax = int(noProxiesMax)
+	TIME_MAX = datetime.now()+timedelta(seconds=INCREMENT_VALUE)
+	MAX_PROXYLESS_REQUESTS = noProxiesMax # max requests = given value
+	CURRENT_VALUE_PROXYLESS = 0
+
 	if outFile != False:		
 		opened_outFile = open(outFile, 'w', newline='', encoding='utf-8')
 	else:
@@ -135,13 +171,10 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	#print("multimap start scraping")
 
 	if poolSize == 1 or noProxiesMax > 0:
-		myFunction = fun1_noProxies
 		if noProxiesMax != 1 :
 			poolSize = noProxiesMax
-	else:
-		myFunction = fun1
-	try:
-		for scrapes in p.imap(myFunction, urlList):
+		for currentURL in urlList:
+			scrapes=fun1_noProxies(currentURL)
 			if scrapes != -1:
 				current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
 				#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
@@ -162,13 +195,38 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 					workingIterator += 1
 					csv_writer.writerow(scrapes)
 					iterator += 1
-	except Exception as e:
-		print("Exception caught during scraping : \n{}".format(traceback.format_exc()))
-		print("[WARNING]\nPlease wait for the processes to safely quit")
-	finally:
-		p.close()
-		p.join()
-		print("Processes stopped.")
+	else:
+		myFunction = fun1
+		try:
+
+			for scrapes in p.imap(myFunction, urlList):
+				if scrapes != -1:
+					current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
+					#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
+					for iteration in range(urls_occurence_dictionnary.get(current_URL)):
+						try:
+							if scrapes[5] != 'None':
+								minPrice+=float(scrapes[5])
+							if scrapes[6] != 'None':
+								trendPrice+=float(scrapes[6])
+							if scrapes[7] != 'None':
+								mean30Price+=float(scrapes[7])
+						except:
+							pass
+						#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
+						currentText = "[{}/{}] Prices: \n\tTotal minimum price = {}; \n\tTotal trending price = {}; \n\tTotal mean 30d price = {}\n(please be patient, it takes some time, and the console output isn't very smooth)".format(iterator, total_number_of_url,round(minPrice,3),round(trendPrice,3),round(mean30Price,3))
+						signals.console.emit(currentText)
+						signals.progress.emit(round(float(iterator)/total_number_of_url*100))
+						workingIterator += 1
+						csv_writer.writerow(scrapes)
+						iterator += 1
+		except Exception as e:
+			print("Exception caught during scraping : \n{}".format(traceback.format_exc()))
+			print("[WARNING]\nPlease wait for the processes to safely quit")
+		finally:
+			p.close()
+			p.join()
+			print("Processes stopped.")
 	currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator, total_number_of_url)
 	signals.console.emit(currentText)
 	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])

@@ -198,7 +198,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 					print("Number of thread can't be over 50, automatically maxed to 50.")
 				self.consoleDisp.setPlainText("Number of Proxies is now : {}, checked on {} threads\nA proxy file is used : {} - proxy file needs checking : {}\nIf a proxyFile is used, its path is :\"{}\"\n\nNumber of Threads for scraping is now : {}".format(self.nProxy, self.nProxiesThreads, self.useProxyFileChk, self.checkProxyFileChk, self.proxyFilePath, self.nThreads))
 				with open('.cmscrape','w') as f:
-					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk))
+					f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
 
 		menuBar = self.menuBar()
 
@@ -251,7 +251,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		if "--no-proxies"in sys.argv:
 			self.noProxiesMax = sys.argv[sys.argv.index("--no-proxies")+1]
 			self.updateConfig(4, self.noProxiesMax)
-		print("No proxies max : {}".format(self.noProxiesMax))
+		# print("No proxies max : {}".format(self.noProxiesMax))
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
 		self.statBtn.clicked.connect(self.statFileDialog)
