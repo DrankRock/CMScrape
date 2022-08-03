@@ -107,7 +107,7 @@ class Worker(QtCore.QRunnable):
 	'''
 	Worker thread
 	'''
-	def __init__(self, chosenFileLbl, chosenOutLbl, chosenStatLbl, nThreads, nProxiesThreads, nProxy, proxyFile, useProxyFile, checkProxyFile):
+	def __init__(self, chosenFileLbl, chosenOutLbl, chosenStatLbl, nThreads, nProxiesThreads, nProxy, proxyFile, useProxyFile, checkProxyFile, noProxiesMax):
 		super(Worker, self).__init__()
 		# run's variables
 		self.chosenIn = chosenFileLbl
@@ -119,13 +119,11 @@ class Worker(QtCore.QRunnable):
 		self.proxyFile = proxyFile
 		self.useProxyFile = useProxyFile
 		self.checkProxyFile = checkProxyFile
+		self.noProxiesMax = noProxiesMax
 
 		self.signals = WorkerSignals()
 
 	def run(self):
-		'''
-		Your code goes in this function
-		'''
 		if self.chosenIn == "No file chosen":
 			self.signals.console.emit("[ERROR]\nPlease Chose an input file before running.")
 		else:
@@ -138,7 +136,7 @@ class Worker(QtCore.QRunnable):
 				isStat = self.chosenStat
 			if isOut == False and isStat == False:
 				self.signals.console.emit("[WARNING]\nYou did not choose any type of output.")
-			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.proxyFile, self.useProxyFile, self.checkProxyFile, self.signals)
+			multiProcess(inFile, self.nThreads, self.nProxiesThreads, self.nProxy, isOut, isStat, self.proxyFile, self.useProxyFile, self.checkProxyFile, self.noProxiesMax, self.signals)
 
 
 
@@ -247,13 +245,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.inputFolderPath = ''
 		self.outputFolderPath = ''
 		self.statFolderPath = ''
+		self.noProxiesMax = 0
 		self.threadpool = QtCore.QThreadPool()
 		self.loadConfig()
+		if "--no-proxies"in sys.argv:
+			self.noProxiesMax = sys.argv[sys.argv.index("--no-proxies")+1]
+			self.updateConfig(4, self.noProxiesMax)
+		print("No proxies max : {}".format(self.noProxiesMax))
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
 		self.statBtn.clicked.connect(self.statFileDialog)
 		self.outputBtn.clicked.connect(self.outputFileDialog)
 		self.runBtn.clicked.connect(self.run)
+		
 
 		self.DEBUG = False
 
@@ -264,8 +268,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.outputFolderPath = value
 		elif toModify == 3:
 			self.statFolderPath = value
+		elif toModify == 4:
+			self.noProxiesMax = value
 		with open('.cmscrape','w') as f:
-			f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath))
+			f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
 
 
 	def loadConfig(self):
@@ -283,6 +289,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			## PROXIES
 				if split_line[0] == "'Proxies'":
 					self.nProxy = int(split_line[1])
+				if split_line[0] == "'noProxiesMax'":
+					self.noProxiesMax = int(split_line[1])
 				if split_line[0] == "'ProxiesThreads'":
 					self.nProxiesThreads = int(split_line[1])
 					if self.nProxiesThreads > 50:
@@ -320,7 +328,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				self.inputFolderPath = ''
 				self.outputFolderPath = ''
 				self.statFolderPath = ''
-				f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath))
+				self.noProxiesMax = 0
+				f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
 
 	def inputFileDialog(self):
 		self.fileDialog = QFileDialog()
@@ -412,7 +421,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		if self.nThreads>MAXTHREADS or self.nProxiesThreads>MAXTHREADS:
 			print("ERROR : Can't run with over 50 Proxies. Please modify them using CTRL+P")
 		else:
-			worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk)
+			worker = Worker(self.chosenFileLbl.text(), self.chosenOutLbl.text(), self.chosenStatLbl.text(), self.nThreads, self.nProxiesThreads, self.nProxy, self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.noProxiesMax)
 			self.threadpool.start(worker)
 			worker.signals.progress.connect(self.update_progress)
 			worker.signals.console.connect(self.update_console)
@@ -441,8 +450,9 @@ def main(argv):
 	grahicLaunch=True #default launching mode
 	termLaunch=False
 	nCores=1
+	nThreadsNP=0
 	try:
-		opts, args = getopt.getopt(argv,"cghit:o:s",["ifile=","ofile=","stats=","cores="])
+		opts, args = getopt.getopt(argv,"c:ghi:to:s:",["ifile=","ofile=","stats=","cores=","no-proxies="])
 	except getopt.GetoptError:
 		print ('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
 		sys.exit(2)
@@ -467,6 +477,8 @@ def main(argv):
 			useStat=True
 		elif opt in ("-c", "--cores"):
 			nCores = arg
+		elif opt in ("--no-proxies"):
+			nThreadsNP = arg
 	for opt in opts:
 		if opt in ("-so", "--sort-outfile"):
 			sortOut=True

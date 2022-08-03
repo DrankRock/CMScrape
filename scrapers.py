@@ -56,6 +56,7 @@ def CMSoupScraper(url, soup):
 		# in any other game please let me know
 		possibleParameters = [
 			"language",
+			"sellerCountry",
 			"sellerType",
 			"minCondition",
 			"isSigned",

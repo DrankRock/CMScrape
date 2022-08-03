@@ -91,6 +91,7 @@ def fun1(url):
 	return scrapers.CMSoupScraper(url, soup)
 
 def fun1_noProxies(url):
+	time.sleep(2)
 	while True:
 		try:
 			headers = random.choice(headers_list)
@@ -103,7 +104,7 @@ def fun1_noProxies(url):
 	soup = BeautifulSoup(response.text, 'lxml')
 	return scrapers.CMSoupScraper(url, soup)
 
-def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
+def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolType):
 	#print("multimap start")
 	global currentText
 	if outFile != False:		
@@ -133,8 +134,10 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 		sys.exit(1)
 	#print("multimap start scraping")
 
-	if poolSize == 1:
+	if poolSize == 1 or noProxiesMax > 0:
 		myFunction = fun1_noProxies
+		if noProxiesMax != 1 :
+			poolSize = noProxiesMax
 	else:
 		myFunction = fun1
 	try:
@@ -181,14 +184,18 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, poolType):
 #		results = p.map(fun1, urlList):
 #		for line in results:
 
-def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, proxyFile, useProxyFile, checkProxyFile, signals):
+def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, proxyFile, useProxyFile, checkProxyFile, noProxiesMax, signals):
 	global prox
 	global currentText
+
+	# Error case situations :
 	if poolSize < 1:
 		print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
 		sys.exit(1)
 	signals.progress.emit(-1) # change stylesheet to proxy
-	if poolSize != 1:
+
+	# Proxy scraping/checking :
+	if poolSize != 1 and noProxiesMax == 0: # virtually the same thing, noproxies or single thread are the same, no proxies gives more control
 		prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
 
 		if proxyFile != '' and checkProxyFile == False and useProxyFile == True:
@@ -196,6 +203,7 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 			signals.console.emit(currentText)
 		else:
 			prox.checkProxies()
+
 	currentText = "Setting up the multithreading... \n(please be patient, it takes some time, and the console output isn't very smooth)"
 	signals.console.emit(currentText)
 	start = time.time()
@@ -223,7 +231,7 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 
 	signals.progress.emit(-2) # change stylesheet to scraping
 	signals.progress.emit(0)
-	working_iterator = multiMap(urlList, poolSize, outFile, statFile, signals, 'Threads')
+	working_iterator = multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, 'Threads')
 	currentText = currentText + "\nOperation lasted {} seconds.".format(round(time.time()-start),3)
 	if outFile != False:
 		currentText = currentText + "\nSuccessfully wrote output file in :\n{}".format(outFile)
@@ -231,3 +239,4 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 		currentText = currentText + "\nSuccessfully wrote statistics file in :\n{}".format(statFile)
 	signals.console.emit(currentText)
 	signals.end.emit(working_iterator, total_number_of_url)
+	print("shit's ending")
