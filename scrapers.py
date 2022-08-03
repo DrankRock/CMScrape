@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import itertools, random, os, cchardet, lxml, traceback
+import itertools, random, os, cchardet, lxml, traceback, html
 from functools import partial
 from multiprocessing import Pool, freeze_support
 from random import randrange
@@ -93,7 +93,7 @@ def CMSoupScraper(url, soup):
 		name_uncut = soup.find_all("div", class_="flex-grow-1")
 		
 		# in csv, if you want to show a " , you need to put a " before, so 24" tv -> 24"" tv
-		name = re.search('><h1>(.*)<span', str(name_uncut)).group(1)
+		name = html.unescape(re.search('><h1>(.*)<span', str(name_uncut)).group(1))
 
 		# Scraping all the variables in the same box as prices
 		Prices_uncut = soup.find_all("dd", class_="col-6 col-xl-7")

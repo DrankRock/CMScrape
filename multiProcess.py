@@ -106,7 +106,7 @@ def fun1_noProxies(url):
 
 	# while i'm in an impossible to link situation, 
 	while CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS and datetime.now() < TIME_MAX:
-		print("I'm informing you that wait is needed !\nExecuted requests = {} Time Remaining = {}".format(CURRENT_VALUE_PROXYLESS-1, TIME_MAX-datetime.now()))
+		print("Waiting before new request. Time Remaining = {}".format(TIME_MAX-datetime.now()), end="\r")
 		time.sleep(1)
 	# if time issue is resolved
 	if CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS:
@@ -297,4 +297,3 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 		currentText = currentText + "\nSuccessfully wrote statistics file in :\n{}".format(statFile)
 	signals.console.emit(currentText)
 	signals.end.emit(working_iterator, total_number_of_url)
-	print("shit's ending")
