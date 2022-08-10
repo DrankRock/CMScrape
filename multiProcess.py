@@ -252,6 +252,7 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 		sys.exit(1)
 	signals.progress.emit(-1) # change stylesheet to proxy
 
+	# print("-- poolSize : {}, noProxiesMax : {}".format(poolSize, noProxiesMax)) ## DEBUG
 	# Proxy scraping/checking :
 	if poolSize != 1 and noProxiesMax == 0: # virtually the same thing, noproxies or single thread are the same, no proxies gives more control
 		prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
@@ -268,11 +269,16 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 
 	# Get input links
 	with open(inputFile, 'r') as f:
-		urlList = f.read().splitlines()
-	f.close()
+		urlList=[]
+		allLines = f.read().splitlines()
+		for url in allLines :
+			if url.startswith("http") or url.startswith("www.") :
+				urlList.append(url)
+		f.close()
 
 	# For each link, put it in dictionnary to check how many occurences there are:
 	global urls_occurence_dictionnary
+	urls_occurence_dictionnary = {}
 	global total_number_of_url
 	total_number_of_url = len(urlList)
 
