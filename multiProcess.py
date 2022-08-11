@@ -1,13 +1,15 @@
 import multiprocessing, time, requests, random, cchardet, lxml, csv, os, sys, traceback
 
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import Pool
-from requests.adapters import HTTPAdapter
-from datetime import datetime, timedelta
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
+from requests.adapters import HTTPAdapter
 
 from scrapeAndCheck import *
+
 import scrapers
 
 headers_list = [{
@@ -60,21 +62,30 @@ headers_list = [{
 		'Sec-Fetch-User': '?1',
 	}]
 
+@dataclass(frozen=True)
+class URL_dataclass:
+	url: str
+	attribute: str
+
 #url = 'https://www.cardmarket.com/en'
+global TIME_MAX
+global CURRENT_VALUE_PROXYLESS
+global MAX_PROXYLESS_REQUESTS
+
 prox = None
 session = None
 currentText = ""
 urls_occurence_dictionnary = {}
 total_number_of_url = 0
-global TIME_MAX
-global CURRENT_VALUE_PROXYLESS
-global MAX_PROXYLESS_REQUESTS
 
-INCREMENT_VALUE = 120
+SLEEP_TIME = 5
 
-def incrementTime():
-	global TIME_MAX
-	TIME_MAX = TIME_MAX + timedelta(seconds=INCREMENT_VALUE)
+'''
+STATUS : 
+ -- 200 : OK
+ -- 404 : NOT FOUND	
+ -- 429 : TOO MANY REQUESTS
+'''
 
 def init_process():
 	global session
@@ -82,74 +93,49 @@ def init_process():
 
 
 def fun1(url):
-	tries = 1
 	while True:
 		try:
 			proxy = prox.randomProxy()
 			proxyDict = {'http':proxy,'https':proxy}
 			headers = random.choice(headers_list)
-			response = session.get(url,headers=headers, proxies=proxyDict, timeout=5)
+			response = session.get(url.url,headers=headers, proxies=proxyDict, timeout=5)
 			#text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
-			#print("Done - {}".format(url))
 		except:
-			tries += 1
+			time.sleep(SLEEP_TIME)
 			continue
 		break
 	soup = BeautifulSoup(response.text, 'lxml')
-	return scrapers.CMSoupScraper(url, soup)
+	listScrap = scrapers.CMSoupScraper(url.url, soup)
+	listScrap.insert(0, url.attribute)
+	return listScrap
 
 def fun1_noProxies(url):
-	global CURRENT_VALUE_PROXYLESS, MAX_PROXYLESS_REQUESTS, TIME_MAX
-	CURRENT_VALUE_PROXYLESS += 1
-	# if the current value is above the max authorized value per minutes, and the current time is below the one minute mark
-	# inform me that wait is needed
-
-	# while i'm in an impossible to link situation, 
-	while CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS and datetime.now() < TIME_MAX:
-		print("Waiting before new request. Time Remaining = {}".format(TIME_MAX-datetime.now()), end="\r")
-		time.sleep(1)
-	# if time issue is resolved
-	if CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS:
-		# increment time
-		incrementTime()
-		# set this link as the first
-		CURRENT_VALUE_PROXYLESS = 1
-
-
-	'''
-	while CURRENT_VALUE_PROXYLESS > MAX_PROXYLESS_REQUESTS :
-		if datetime.now() > TIME_MAX:
-			CURRENT_VALUE_PROXYLESS = 0
-			incrementTime()'''
-
-
 	while True:
 		try:
 			headers = random.choice(headers_list)
-			response = session.get(url,headers=headers,timeout=5)
+			response = session.get(url.url,headers=headers,timeout=5)
+			if response.status_code == 429 :
+				raise ValueError("TOO MANY REQUESTS")
 			#text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
-			#print("Done - {}".format(url))
 		except:
+			time.sleep(SLEEP_TIME)
 			continue
 		break
 	soup = BeautifulSoup(response.text, 'lxml')
-	return scrapers.CMSoupScraper(url, soup)
+	listScrap = scrapers.CMSoupScraper(url.url, soup)
+	listScrap.insert(0, url.attribute)
+	return listScrap
 
 def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolType):
+	global currentText
 	#print("multimap start")
-	global currentText, MAX_PROXYLESS_REQUESTS, CURRENT_VALUE_PROXYLESS, TIME_MAX
-	noProxiesMax = int(noProxiesMax)
-	TIME_MAX = datetime.now()+timedelta(seconds=INCREMENT_VALUE)
-	MAX_PROXYLESS_REQUESTS = noProxiesMax # max requests = given value
-	CURRENT_VALUE_PROXYLESS = 0
-
 	if outFile != False:		
 		opened_outFile = open(outFile, 'w', newline='', encoding='utf-8')
 	else:
 		opened_outFile = open(os.devnull, 'w', newline='')
 	# setup csv_writer for the output file
 	csv_writer = csv.writer(opened_outFile)
-	csv_writer.writerow(['game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
+	csv_writer.writerow(['attribute','game','item','extension','number','name','min_price','price_trend','mean30d_price','language','sellerType','minCondition','isSigned','isFirstEd','isPlayset','isAltered','isReverseHolo','isFoil','url'])
 	
 	currentText = "Starting multithreading for scraping ..."
 	signals.console.emit(currentText)
@@ -161,6 +147,8 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	trendPrice = 0.0
 	mean30Price = 0.0
 
+	if noProxiesMax == "True" :
+		poolSize = 1
 	if poolType == 'Threads':
 		p = ThreadPool(poolSize, initializer=init_process)
 	elif poolType == 'Processes':
@@ -170,22 +158,20 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 		sys.exit(1)
 	#print("multimap start scraping")
 
-	if poolSize == 1 or noProxiesMax > 0:
-		if noProxiesMax != 1 :
-			poolSize = noProxiesMax
+	if poolSize == 1:
+		print("how did i get here ?")
 		for currentURL in urlList:
 			scrapes=fun1_noProxies(currentURL)
 			if scrapes != -1:
-				current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
 				#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
-				for iteration in range(urls_occurence_dictionnary.get(current_URL)):
+				for iteration in range(urls_occurence_dictionnary.get(currentURL)):
 					try:
-						if scrapes[5] != 'None':
-							minPrice+=float(scrapes[5])
 						if scrapes[6] != 'None':
-							trendPrice+=float(scrapes[6])
+							minPrice+=float(scrapes[6])
 						if scrapes[7] != 'None':
-							mean30Price+=float(scrapes[7])
+							trendPrice+=float(scrapes[7])
+						if scrapes[8] != 'None':
+							mean30Price+=float(scrapes[8])
 					except:
 						pass
 					#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
@@ -198,19 +184,21 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	else:
 		myFunction = fun1
 		try:
-
 			for scrapes in p.imap(myFunction, urlList):
+				print("in function !")
 				if scrapes != -1:
-					current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
+					print("correct value !")
 					#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
-					for iteration in range(urls_occurence_dictionnary.get(current_URL)):
+					current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
+					tempURLdc = URL_dataclass(current_URL, scrapes[0])
+					for iteration in range(urls_occurence_dictionnary.get(tempURLdc)):
 						try:
-							if scrapes[5] != 'None':
-								minPrice+=float(scrapes[5])
 							if scrapes[6] != 'None':
-								trendPrice+=float(scrapes[6])
+								minPrice+=float(scrapes[6])
 							if scrapes[7] != 'None':
-								mean30Price+=float(scrapes[7])
+								trendPrice+=float(scrapes[7])
+							if scrapes[8] != 'None':
+								mean30Price+=float(scrapes[8])
 						except:
 							pass
 						#print("[{}/{}] Prices: min={}; trend={}; mean30={}".format(iterator, nURL,minPrice,trendPrice,mean30Price), end="\r", flush=True)
@@ -229,7 +217,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 			print("Processes stopped.")
 	currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator, total_number_of_url)
 	signals.console.emit(currentText)
-	csv_writer.writerow(['','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
+	csv_writer.writerow(['','','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
 	if statFile != False:		
 		with open(statFile, 'a', newline='', encoding='utf-8') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -254,7 +242,7 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 
 	# print("-- poolSize : {}, noProxiesMax : {}".format(poolSize, noProxiesMax)) ## DEBUG
 	# Proxy scraping/checking :
-	if poolSize != 1 and noProxiesMax == 0: # virtually the same thing, noproxies or single thread are the same, no proxies gives more control
+	if poolSize != 1 and noProxiesMax == "False": # virtually the same thing, noproxies or single thread are the same, no proxies gives more control
 		prox = proxyClass(nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals)
 
 		if proxyFile != '' and checkProxyFile == False and useProxyFile == True:
@@ -270,16 +258,20 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 	# Get input links
 	with open(inputFile, 'r') as f:
 		urlList=[]
+		currentAttribute = ""
 		allLines = f.read().splitlines()
 		for url in allLines :
+			if url.startswith("#") :
+				currentAttribute = url[1:]
 			if url.startswith("http") or url.startswith("www.") :
-				urlList.append(url)
+				u = URL_dataclass(url, currentAttribute)
+				urlList.append(u)
 		f.close()
 
 	# For each link, put it in dictionnary to check how many occurences there are:
 	global urls_occurence_dictionnary
-	urls_occurence_dictionnary = {}
 	global total_number_of_url
+	urls_occurence_dictionnary = {}
 	total_number_of_url = len(urlList)
 
 	for url in urlList:

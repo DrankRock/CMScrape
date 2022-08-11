@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import itertools, random, os, cchardet, lxml, traceback, html
+
+from datetime import datetime
 from functools import partial
 from multiprocessing import Pool, freeze_support
 from random import randrange
-from datetime import datetime
 
 from scrapeAndCheck import *
+
 
 def CMSoupScraper(url, soup):
 	def priceToFloat(price):
@@ -15,6 +17,7 @@ def CMSoupScraper(url, soup):
 
 	"""
 	scrape the parameters and output them in the cvs format
+	return a List containing all the scraped information
 	"""
 	def paramScrap(params_ref):
 		"""

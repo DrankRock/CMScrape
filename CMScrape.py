@@ -251,6 +251,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		if "--no-proxies"in sys.argv:
 			self.noProxiesMax = sys.argv[sys.argv.index("--no-proxies")+1]
 			self.updateConfig(4, self.noProxiesMax)
+		if self.noProxiesMax == True :
+			print("Please note that noProxies mode is activated.\nAs of right now, to de-activate, relaunch using :\npython CMScrape.py --no-proxies 0")
 		# print("No proxies max : {}".format(self.noProxiesMax))
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
@@ -290,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				if split_line[0] == "'Proxies'":
 					self.nProxy = int(split_line[1])
 				if split_line[0] == "'noProxiesMax'":
-					self.noProxiesMax = int(split_line[1])
+					self.noProxiesMax = str(split_line[1])
 				if split_line[0] == "'ProxiesThreads'":
 					self.nProxiesThreads = int(split_line[1])
 					if self.nProxiesThreads > 50:
