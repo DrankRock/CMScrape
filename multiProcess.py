@@ -93,16 +93,25 @@ def init_process():
 
 
 def fun1(url):
+	tries = 1
 	while True:
 		try:
+			if tries >= 13 :
+				raise ValueError("REQUEST NOT WORKING AFTER 65 SEC")
 			proxy = prox.randomProxy()
 			proxyDict = {'http':proxy,'https':proxy}
 			headers = random.choice(headers_list)
 			response = session.get(url.url,headers=headers, proxies=proxyDict, timeout=5)
+			if response.status_code == 429 :
+				raise ValueError("TOO MANY REQUESTS")
 			#text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
 		except:
-			time.sleep(SLEEP_TIME)
-			continue
+			if tries >= 13 :
+				break
+			else :
+				tries = tries+1
+				time.sleep(1)
+				continue
 		break
 	soup = BeautifulSoup(response.text, 'lxml')
 	listScrap = scrapers.CMSoupScraper(url.url, soup)
