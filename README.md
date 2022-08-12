@@ -31,10 +31,11 @@ Once the list is created, the time gain starts. You just need to execute `python
 This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket. 
 
 ### Demo :
-You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://www.youtube.com/watch?v=3Wjy0_205oI).
-/!\ This demo is obsolete, it's way faster now. Will make a new one later.
+You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://youtu.be/MLnEbfotPQ0).
 
-![Demo](.github/images/CMScrape_Demo.gif)
+
+https://user-images.githubusercontent.com/32172257/184334337-5028fcfd-e46a-4fdf-9a21-f8959da700a0.mp4  
+
 
 ### Current state :
 This project is currently in developpment. It works and is tested on ubuntu 16.04 and windows 10, mostly on yugioh and pokemon cards.
