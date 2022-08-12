@@ -17,6 +17,9 @@ python CMScrape.py
 
 *voilà*
 
+Note : a Proxyless use is available, faster for smaller lists (30 or less links) and can be switched on and off with :   
+`python CMScrape.py --no-proxies <True or False>`
+
 ---
 ### OBJECTIVE
 This tool aims to **gain time** when checking a collection's price on CardMarket.
@@ -58,8 +61,9 @@ Use the three buttons on the left to choose an input file, and either a Statisti
 
 ### Files :
 The **input** file should be a .txt file containing, on each line, a URL to a specific collectible from CardMarket. This can be cards, decks, boosters, deck boxes etc. As long as it's a collectible with a variable price, it will work. The input is enough to run the app, and if no outputs are given, the total prices will be written on the console.  
+In the input, you can put non-links to make it clearer. Any line starting with `#` (eg. `#Binder 71`) is seen as an Attribute marker. in the csv output, Attributes will be indicated, as an example to indicate where your cards are stored, or what type of cards they are, or to add any information you want. Any other non-link line will be ignored.  
 The **output** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, it will be overwritten. For each url contained in the input file, the output file will contain a line with the informations :  
-`game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`  
+`attribute,game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`  
 in a coma separated form. The price and the url will be surrounded by `"`, which needs to be set as the String Delimiter in your csv viewer. (Libreoffice works well).  
 The **statistics** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, the content of the file won't be overwritten, but a new line will be added at the end containing the informations. The statistics option outputs a single file with the informations :
 `current Time, sum of all the minimum prices, sum of all the trending prices, sum of all the "Mean 30 days" prices`  
@@ -71,25 +75,33 @@ You can and should select parameters to precise the behavior of the application.
 **Number of Threads in ProxyCheck** is the number of Proxies you want to check simultaneously. The need for proxies is explained in the next section.  
 **Number of Proxies** is the maximum number of proxies you need.  
 **Use a file containing proxies** is self-explanatory. Instead of searching online for proxies, put the path to a file containing your proxies (Https or Http) and it will be used. You can then choose if you want to use this file, and if you want CMScrape to check which proxies are working.    
+**Use proxy file** needs to be checked for the file containing proxies to be used  
+**Check proxy file** makes it possible to test the proxies in the list before using them  
 
+*Note: an additional parameter, not in the menu, gives access to a proxyless mode. It can be turned on and off using `CMScrape.py --no-proxies <True or False>`*  
 All these options are saved in the `.cmscrape` file and will be loaded in the next execution.  
 
 ### RUN :
 To explain what happens when CMScrape runs, I need to answer a question. If you understand the need for auto-rotating proxies, no need to read this subsection.
 
 #### What are proxies, and why do we need them ?
-A proxy is like a mask that your connection puts on, to make the website think it's a different person. It's not as secure as a VPN, it really is just like a mask, where a VPN would be a complete false identity and modification of your face. We need to disguise our identity because most websites protect themselves from people making too many requests. From my tests, Cardmarket accepts that a single user make 32 requests per minute. Above that, the request will return an error, and CMScrape will not work.
+A proxy is like a mask that your connection puts on, to make the website think it's a different person. It's not as secure as a VPN, it really is just like a mask, where a VPN would be a complete false identity and modification of your face. We need to disguise our identity because most websites protect themselves from people making too many requests. From my tests, Cardmarket accepts that a single user make 32 requests per minute. Above that, the IP is blocked and will be unsuable for 60 seconds.  
 When using on single thread, so one url by one, this limit is not reached. But once we go multithreaded, so checking many urls at once, cardmarket sees how fast we go and knows it's not a human doing that, and blocks the IP adress.
 This is why we need proxies.  
 
-Because this tool might be used by people who are not familiar with these technologies, I added a way to do this **automatically**7. Instead of having to buy, or find proxies, CMScrape will go on various pages online and find free proxies, then check which ones are working.  
+Because this tool might be used by people who are not familiar with these technologies, I added a way to do this **automatically**. Instead of having to buy, or find proxies, CMScrape will go on various pages online and find free proxies, then check which ones are working.  
 Proxies need to be checked, because they will not always work. They depend on servers, etc. Non-working proxies will waste time and efficiency, so testing which ones work is necessary. With free proxies like the ones I'm scraping online, around 1 in 10 proxies is working.
+
+If you do not want to use proxies or if you don't need CMScrape to be as fast as possible, you can enable a proxyless mode. See **Parameters**.  
 
 #### The running :
 As soon as the run button is clicked, if you did not put a proxy file, CMScrape will dowload free proxies on various sources, then check them.
 When enough working proxies are found (as specified in the preferences, or when all the proxies were checked), the scraping phase starts for all the links in the input file. For each link, the page is downloaded, informations are extracted and put in the selected output.
 
 When it's done, an information dialog will open, and some general informations will appear on the console.  
+
+#### The proxyless :  
+Instead of trying to trick Cardmarket into thinking the user is many users, it takes the patience route and just wait for cardmarket to unblock the ip adress before continuing the scraping. This thus goes at a maximal speed of 30 checks/minute.  
 
 #### About the prices.   
 *MinPrice* is the minimum price observed on cardmarket **taking into account the parameters**, such as the condition, or the langage.   
@@ -175,6 +187,10 @@ Below is an example of a not working example, because it does not contain trend/
 Through the Firefox extension and the app itself, my goal as of today is reached. I have an easy to use software to know the exact price of my collection. It supports proxies etc. 
 
 Small things can be improved, proxies added, interface made nicer especially on windows, a terminal only option (to run faster, and automatized runs), and I will be improving them in the future
+
+#### Latest Fixes :  
+- Improving the proxyless.  
+- Added an attribute column in the csv.  
 
 #### TODO :
 Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)   
