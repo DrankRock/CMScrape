@@ -229,8 +229,22 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator, total_number_of_url)
 	signals.console.emit(currentText)
 	csv_writer.writerow(['','','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
-	if not ACTIVATE_ATTRIBUTES :
-		csv_writer
+	if not ACTIVATE_ATTRIBUTES and outFile != False :
+		opened_outFile.close()
+		opened_outFile = open(outFile, 'r', newline='', encoding='utf-8')
+		csv_reader = csv.reader(opened_outFile)
+		csv_copy = []
+		for row in csv_reader :
+			csv_copy.append(row)
+		opened_outFile.close()
+		opened_outFile = open(outFile, 'w+', newline='', encoding='utf-8')
+		opened_outFile.close()
+		opened_outFile = open(outFile, 'w', newline='', encoding='utf-8')
+		csv_writer = csv.writer(opened_outFile)
+		for row in csv_copy :
+			csv_writer.writerow(row[1:])
+		opened_outFile.close()      
+
 	if statFile != False:		
 		with open(statFile, 'a', newline='', encoding='utf-8') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
