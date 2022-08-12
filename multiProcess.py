@@ -71,6 +71,9 @@ class URL_dataclass:
 global TIME_MAX
 global CURRENT_VALUE_PROXYLESS
 global MAX_PROXYLESS_REQUESTS
+global ACTIVATE_ATTRIBUTES
+
+ACTIVATE_ATTRIBUTES = False
 
 prox = None
 session = None
@@ -125,6 +128,7 @@ def fun1_noProxies(url):
 			response = session.get(url.url,headers=headers,timeout=5)
 			if response.status_code == 429 :
 				raise ValueError("TOO MANY REQUESTS")
+				print("There are currently too many requests. Execution will pause for around 60 seconds.", end="\r")
 			#text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
 		except:
 			time.sleep(SLEEP_TIME)
@@ -194,9 +198,7 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 		myFunction = fun1
 		try:
 			for scrapes in p.imap(myFunction, urlList):
-				print("in function !")
 				if scrapes != -1:
-					print("correct value !")
 					#print("current URL : {} ;\nURL in scrapes : {}\n value : {}\n------------------".format(current_URL,scrapes[len(scrapes)-1], urls_occurence_dictionnary.get(current_URL)))
 					current_URL = str(scrapes[len(scrapes)-1]).replace('"', '')
 					tempURLdc = URL_dataclass(current_URL, scrapes[0])
@@ -227,6 +229,8 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator, total_number_of_url)
 	signals.console.emit(currentText)
 	csv_writer.writerow(['','','','Number of cards',workingIterator,'Total Prices:',minPrice,trendPrice,mean30Price])
+	if not ACTIVATE_ATTRIBUTES :
+		csv_writer
 	if statFile != False:		
 		with open(statFile, 'a', newline='', encoding='utf-8') as f:
 			now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
@@ -265,12 +269,14 @@ def multiProcess(inputFile, poolSize, proxyPoolSize, nProxy, outFile, statFile, 
 	start = time.time()
 
 	# Get input links
+	global ACTIVATE_ATTRIBUTES
 	with open(inputFile, 'r') as f:
 		urlList=[]
 		currentAttribute = ""
 		allLines = f.read().splitlines()
 		for url in allLines :
 			if url.startswith("#") :
+				ACTIVATE_ATTRIBUTES = True
 				currentAttribute = url[1:]
 			if url.startswith("http") or url.startswith("www.") :
 				u = URL_dataclass(url, currentAttribute)
