@@ -172,7 +172,6 @@ def multiMap(urlList, poolSize, outFile, statFile, signals, noProxiesMax, poolTy
 	#print("multimap start scraping")
 
 	if poolSize == 1:
-		print("how did i get here ?")
 		for currentURL in urlList:
 			scrapes=fun1_noProxies(currentURL)
 			if scrapes != -1:
