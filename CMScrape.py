@@ -259,6 +259,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		self.statBtn.clicked.connect(self.statFileDialog)
 		self.outputBtn.clicked.connect(self.outputFileDialog)
 		self.runBtn.clicked.connect(self.run)
+		self.proxyBtn.clicked.connect(self.proxyChoice)
 		
 
 		self.DEBUG = False
@@ -275,6 +276,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		with open('.cmscrape','w') as f:
 			f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
 
+	def proxyChoice(self):
+		if(self.proxyBtn.text() == "Without Proxies (limited to 30/min)"):
+			self.proxyBtn.setText("Using proxies (up to 1500/min but needs loading)")
+			self.updateConfig(4, "False")
+		else :
+			self.proxyBtn.setText("Without Proxies (limited to 30/min)")
+			self.updateConfig(4, "True")
 
 	def loadConfig(self):
 		if os.path.exists('.cmscrape'):

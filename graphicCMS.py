@@ -189,31 +189,58 @@ class Ui_MainWindow(object):
         MainWindow.setWindowIcon(QtGui.QIcon('ressources/logo.ico'))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        # Grid Layout containing everything
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
+
+        # Vertical Layout for 
+        # proxies ?
+        # < buttons | labels >
+        self.verticalLayoutProx = QtWidgets.QVBoxLayout()
+        self.verticalLayoutProx.setObjectName("verticalLayoutProx")
+
+        # ## Switch at the top for Proxies or Proxyless
+        self.proxyBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.proxyBtn.setMinimumSize(QtCore.QSize(131, 23))
+        self.proxyBtn.setObjectName("proxyBtn")
+        self.verticalLayoutProx.addWidget(self.proxyBtn)
+        # ## ------------
+        
+
+        # Horizontal Layout for < buttons | labels >
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
+        # Vertical Layout for the buttons
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
+
+        # input button
         self.inputBtn = QtWidgets.QPushButton(self.centralwidget)
         self.inputBtn.setMinimumSize(QtCore.QSize(131, 23))
         self.inputBtn.setObjectName("inputBtn")
         self.verticalLayout.addWidget(self.inputBtn)
+        # stat button
         self.statBtn = QtWidgets.QPushButton(self.centralwidget)
         self.statBtn.setMinimumSize(QtCore.QSize(131, 23))
         self.statBtn.setObjectName("statBtn")
         self.verticalLayout.addWidget(self.statBtn)
+        # output button
         self.outputBtn = QtWidgets.QPushButton(self.centralwidget)
         self.outputBtn.setMinimumSize(QtCore.QSize(131, 23))
         self.outputBtn.setObjectName("outputBtn")
         self.verticalLayout.addWidget(self.outputBtn)
+        # run button
         self.runBtn = QtWidgets.QPushButton(self.centralwidget)
         self.runBtn.setMinimumSize(QtCore.QSize(131, 23))
         self.runBtn.setObjectName("runBtn")
         self.verticalLayout.addWidget(self.runBtn)
+
         self.horizontalLayout.addLayout(self.verticalLayout)
+        self.verticalLayoutProx.addLayout(self.horizontalLayout)
+
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        # input Label
         self.chosenFileLbl = QtWidgets.QLabel(self.centralwidget)
         self.chosenFileLbl.setMinimumSize(QtCore.QSize(200, 23))
         self.chosenFileLbl.setStyleSheet("color: rgb(156, 156, 156);\n"
@@ -222,6 +249,7 @@ class Ui_MainWindow(object):
         self.chosenFileLbl.setAlignment(QtCore.Qt.AlignCenter)
         self.chosenFileLbl.setObjectName("chosenFileLbl")
         self.verticalLayout_2.addWidget(self.chosenFileLbl)
+        # stat Label
         self.chosenStatLbl = QtWidgets.QLabel(self.centralwidget)
         self.chosenStatLbl.setMinimumSize(QtCore.QSize(200, 23))
         self.chosenStatLbl.setStyleSheet("color: rgb(156, 156, 156);\n"
@@ -230,6 +258,7 @@ class Ui_MainWindow(object):
         self.chosenStatLbl.setAlignment(QtCore.Qt.AlignCenter)
         self.chosenStatLbl.setObjectName("chosenStatLbl")
         self.verticalLayout_2.addWidget(self.chosenStatLbl)
+        # output label
         self.chosenOutLbl = QtWidgets.QLabel(self.centralwidget)
         self.chosenOutLbl.setMinimumSize(QtCore.QSize(200, 23))
         self.chosenOutLbl.setStyleSheet("color: rgb(156, 156, 156);\n"
@@ -239,6 +268,7 @@ class Ui_MainWindow(object):
         self.chosenOutLbl.setAlignment(QtCore.Qt.AlignCenter)
         self.chosenOutLbl.setObjectName("chosenOutLbl")
         self.verticalLayout_2.addWidget(self.chosenOutLbl)
+        # Progress bar
         self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
         self.progressBar.setMinimumSize(QtCore.QSize(200, 23))
         self.progressBar.setStyleSheet("QProgressBar{\n"
@@ -256,7 +286,8 @@ class Ui_MainWindow(object):
         self.progressBar.setObjectName("progressBar")
         self.verticalLayout_2.addWidget(self.progressBar)
         self.horizontalLayout.addLayout(self.verticalLayout_2)
-        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.gridLayout.addLayout(self.verticalLayoutProx, 0, 0, 1, 1)
+        # Console Display
         self.consoleLayout = QtWidgets.QVBoxLayout()
         self.consoleLayout.setObjectName("consoleLayout")
         self.consoleLbl = QtWidgets.QLabel(self.centralwidget)
@@ -287,6 +318,7 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "CMScrape - CardMarket Price Tracker"))
+        self.proxyBtn.setText(_translate("MainWindow", "Without Proxies (limited to 30/min)"))
         self.inputBtn.setText(_translate("MainWindow", "Choose Input File"))
         self.statBtn.setText(_translate("MainWindow", "Choose Statistics File"))
         self.outputBtn.setText(_translate("MainWindow", "Choose Output File"))
