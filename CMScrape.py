@@ -251,9 +251,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 		if "--no-proxies"in sys.argv:
 			self.noProxiesMax = sys.argv[sys.argv.index("--no-proxies")+1]
 			self.updateConfig(4, self.noProxiesMax)
-		if self.noProxiesMax == True :
-			print("Please note that noProxies mode is activated.\nAs of right now, to de-activate, relaunch using :\npython CMScrape.py --no-proxies 0")
-		# print("No proxies max : {}".format(self.noProxiesMax))
+		if self.noProxiesMax == "True":
+			self.proxyBtn.setText("Without Proxies (limited to 30/min)")
+		else:
+			self.proxyBtn.setText("Using proxies (up to 1500/min but needs loading)")
 		self._createMenuBar()
 		self.inputBtn.clicked.connect(self.inputFileDialog)
 		self.statBtn.clicked.connect(self.statFileDialog)
@@ -275,7 +276,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 			self.noProxiesMax = value
 		with open('.cmscrape','w') as f:
 			f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
-
+	
 	def proxyChoice(self):
 		if(self.proxyBtn.text() == "Without Proxies (limited to 30/min)"):
 			self.proxyBtn.setText("Using proxies (up to 1500/min but needs loading)")
@@ -338,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 				self.inputFolderPath = ''
 				self.outputFolderPath = ''
 				self.statFolderPath = ''
-				self.noProxiesMax = 0
+				self.noProxiesMax = "True"
 				f.write("'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'ProxyFilePath' : {}\n'useProxyFile' : {}\n'checkProxyFile' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n'noProxiesMax' : {}".format(self.nProxiesThreads, self.nThreads, self.nProxy,  self.proxyFilePath, self.useProxyFileChk, self.checkProxyFileChk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath, self.noProxiesMax))
 
 	def inputFileDialog(self):
