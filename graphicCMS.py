@@ -327,7 +327,7 @@ class Ui_MainWindow(object):
         self.chosenStatLbl.setText(_translate("MainWindow", "No file chosen"))
         self.chosenOutLbl.setText(_translate("MainWindow", "No file chosen"))
         self.actionHello.setText(_translate("MainWindow", "Hello"))
-        self.consoleLbl.setText(_translate("MainWindow", "Console output :"))
+        self.consoleLbl.setText(_translate("MainWindow", "Console output :")) #
 
 
 if __name__ == "__main__":
