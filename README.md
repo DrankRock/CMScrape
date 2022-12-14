@@ -21,7 +21,7 @@ python CMScrape.py
 
 *voilà*
 
-Note : a Proxyless use is available, faster for smaller lists (30 or less links) and can be switched on and off with :   
+Note : a Proxyless use is available, faster for smaller lists (30 or fewer links) and can be switched on and off with :   
 `python CMScrape.py --no-proxies <True or False>`
 
 ---
@@ -35,14 +35,14 @@ Once the list is created, the time gain starts. You just need to execute `python
 This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket. 
 
 ### Demo :
-You will find below an example of the execution with the latest version. If needed, a youtube version is available [here](https://youtu.be/MLnEbfotPQ0).
+You will find below an example of the execution with the latest version. If needed, a YouTube version is available [here](https://youtu.be/MLnEbfotPQ0).
 
 
 https://user-images.githubusercontent.com/32172257/184334337-5028fcfd-e46a-4fdf-9a21-f8959da700a0.mp4  
 
 
 ### Current state :
-This project is currently in developpment. It works and is tested on ubuntu 16.04 and windows 10, mostly on yugioh and pokemon cards.
+This project is currently in developpment. It works and is tested on ubuntu 16.04 and Windows 10, mostly on yugioh and pokémon cards.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
 Note : this project was developped on Ubuntu 16.04. If you face any issue with the execution, please let me know.
@@ -66,11 +66,11 @@ Use the three buttons on the left to choose an input file, and either a Statisti
 
 ### Files :
 The **input** file should be a .txt file containing, on each line, a URL to a specific collectible from CardMarket. This can be cards, decks, boosters, deck boxes etc. As long as it's a collectible with a variable price, it will work. The input is enough to run the app, and if no outputs are given, the total prices will be written on the console.  
-In the input, you can put non-links to make it clearer. Any line starting with `#` (eg. `#Binder 71`) is seen as an Attribute marker. in the csv output, Attributes will be indicated, as an example to indicate where your cards are stored, or what type of cards they are, or to add any information you want. Any other non-link line will be ignored.  
-The **output** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, it will be overwritten. For each url contained in the input file, the output file will contain a line with the informations :  
+In the input, you can put non-links to make it clearer. Any line starting with `#` (e.g. `#Binder 71`) is seen as an Attribute marker. in the csv output, Attributes will be indicated, as an example to indicate where your cards are stored, or what type of cards they are, or to add any information you want. Any other non-link line will be ignored.  
+The **output** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, it will be overwritten. For each url contained in the input file, the output file will contain a line with the information :  
 `attribute,game,item,extension,number,name,min_price,price_trend,mean30d_price,language,sellerType,minCondition,isSigned,isFirstEd,isPlayset,isAltered,isReverseHolo,isFoil,url`  
 in a coma separated form. The price and the url will be surrounded by `"`, which needs to be set as the String Delimiter in your csv viewer. (Libreoffice works well).  
-The **statistics** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, the content of the file won't be overwritten, but a new line will be added at the end containing the informations. The statistics option outputs a single file with the informations :
+The **statistics** file must be a .csv file. If it doesn't exist, it will be created. If it does exist, the content of the file won't be overwritten, but a new line will be added at the end containing the information. The statistics option outputs a single file with the information :
 `current Time, sum of all the minimum prices, sum of all the trending prices, sum of all the "Mean 30 days" prices`  
 in a coma separated form. This output aims to check the evolution of the collection as a whole.  
 
@@ -101,9 +101,9 @@ If you do not want to use proxies or if you don't need CMScrape to be as fast as
 
 #### The running :
 As soon as the run button is clicked, if you did not put a proxy file, CMScrape will dowload free proxies on various sources, then check them.
-When enough working proxies are found (as specified in the preferences, or when all the proxies were checked), the scraping phase starts for all the links in the input file. For each link, the page is downloaded, informations are extracted and put in the selected output.
+When enough working proxies are found (as specified in the preferences, or when all the proxies were checked), the scraping phase starts for all the links in the input file. For each link, the page is downloaded, information are extracted and put in the selected output.
 
-When it's done, an information dialog will open, and some general informations will appear on the console.  
+When it's done, an information dialog will open, and some general information will appear on the console.  
 
 #### The proxyless :  
 Instead of trying to trick Cardmarket into thinking the user is many users, it takes the patience route and just wait for cardmarket to unblock the ip adress before continuing the scraping. This thus goes at a maximal speed of 30 checks/minute.  
@@ -115,7 +115,7 @@ Instead of trying to trick Cardmarket into thinking the user is many users, it t
 Trend and mean do not take into account the parameters. In my opinion, they are thus less precise when checking prices for a collection, but more accurate when you are buying cards for playing.   
 
 ### Terminal's arguments :
-#### The current terminal version is obsolete, hasn't been maintained for a while. I will update it in the near future, and put all the options back on the README.md. I apologize for the inconvenience. I only left the -h / --help option as it will only work in terminal anyways, and still works.  
+#### The current terminal version is obsolete, hasn't been maintained for a while. I will update it in the near future, and put all the options back on the README.md. I apologize for the inconvenience. I only left the -h / --help option as it will only work in terminal anyway, and still works.  
 
 ***`-h :`***
 
@@ -189,7 +189,7 @@ Below is an example of a not working example, because it does not contain trend/
 ### Dev Log :
 
 #### Current preoccupations :
-Through the Firefox extension and the app itself, my goal as of today is reached. I have an easy to use software to know the exact price of my collection. It supports proxies etc. 
+Through the Firefox extension and the app itself, my goal as of today is reached. I have an easy-to-use software to know the exact price of my collection. It supports proxies etc. 
 
 Small things can be improved, proxies added, interface made nicer especially on windows, a terminal only option (to run faster, and automatized runs), and I will be improving them in the future
 

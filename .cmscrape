@@ -7,4 +7,4 @@
 'InputFolder' : /home/matvei/Documents/GitHub/CMScrape/exampleData
 'OutputFolder' : 
 'StatFolder' : 
-'noProxiesMax' : True
+'noProxiesMax' : False
