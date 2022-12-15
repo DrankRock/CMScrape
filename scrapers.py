@@ -21,8 +21,8 @@ def CMSoupScraper(url, soup):
 	"""
 	def paramScrap(params_ref):
 		"""
-		for each parameters, get only the value
-		:param params: the list containing all the a
+		for each parameter, get only the value
+		:param params: the list containing all the parameters
 		:param indexInParams: the index of the parameter in the parameters list
 		:param paramString: a string containing the name of the parameter as used in cardmarket's url
 		"""
@@ -55,7 +55,7 @@ def CMSoupScraper(url, soup):
 
 		# these are the interesting parameters, that we will put in the cvs output, 
 		# we want to get their values. Please note that this might not be complete
-		# it seems like it is concerning Pokemon and YuGiOh, but if I missed any
+		# it seems like it is concerning Pokémon and YuGiOh, but if I missed any
 		# in any other game please let me know
 		possibleParameters = [
 			"language",
@@ -69,7 +69,7 @@ def CMSoupScraper(url, soup):
 			"isReverseHolo",
 			"isFoil"
 		]
-		# For each parameters, if it has a value, appends it, else, appends 'None'
+		# For each parameter, if it has a value, appends it, else, appends 'None'
 		for parameter in possibleParameters:
 			currentIndex = index_containing_substring(params, parameter)
 			paramliste.append(singleParamScrap(params, currentIndex, parameter))

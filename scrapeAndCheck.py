@@ -127,7 +127,7 @@ class proxyClass():
             vals = pool.imap(self.checkProxy, self.proxyList)
             for result in vals:
                 text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator+1),lenProxyList, working, self.needs)
-                #self.progressBar.setValue(round(float(iterator+1)/lenProxyList*100))
+                #self.progress_bar.setValue(round(float(iterator+1)/lenProxyList*100))
                 self.signals.progress.emit(round(float(iterator+1)/lenProxyList*100))
                 if working >= self.needs:
                     self.proxyList = output
