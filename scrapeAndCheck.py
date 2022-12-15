@@ -7,6 +7,7 @@ WEBPAGE = 'https://www.cardmarket.com/en'
 TIMEOUT = 10
 FINISH = False
 
+
 ### TODO :
 # https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=4350&country=all&ssl=all&anonymity=all&simplified=true
 # but needs to download the file
@@ -18,6 +19,7 @@ FINISH = False
 # needs scraping
 class proxyClass():
     def __init__(self, nProxy, proxyPoolSize, proxyFile, useProxyFile, checkProxyFile, signals):
+        self.proxyList = None
         self.needs = nProxy
         self.nProcess = proxyPoolSize
         self.proxyFile = proxyFile
@@ -27,19 +29,18 @@ class proxyClass():
 
         self.currentText = ""
         if proxyFile == '' or useProxyFile == False:
-            #print("Initialize webscraping for proxies")
+            # print("Initialize webscraping for proxies")
             self.initWebScrape()
         else:
-            #print("Initialize list from file for proxies with {}".format(proxyFile))
+            # print("Initialize list from file for proxies with {}".format(proxy_file))
             self.initFileProxy(proxyFile)
         random.shuffle(self.proxyList)
-        
 
     def initFileProxy(self, proxyFile):
         with open(proxyFile, 'r') as f:
             self.proxyList = [line.strip() for line in f]
-            #print("\n".join(self.proxyList))
-        self.currentText = "Successfully loaded {} proxies from file {}\n".format(len(self.proxyList),self.proxyFile)
+            # print("\n".join(self.proxyList))
+        self.currentText = "Successfully loaded {} proxies from file {}\n".format(len(self.proxyList), self.proxyFile)
         self.signals.console.emit(self.currentText)
 
     def initWebScrape(self):
@@ -49,17 +50,17 @@ class proxyClass():
             soup = BeautifulSoup(page.content, "html.parser")
 
             name_uncut = soup.find("table", class_="table table-striped table-bordered")
-            #print(name_uncut)
-            name = re.findall(r'<td(?: class="(?:hm|hx)")?>(.*?)<\/td>',str(name_uncut))
-            #print(name)
+            # print(name_uncut)
+            name = re.findall(r'<td(?: class="(?:hm|hx)")?>(.*?)<\/td>', str(name_uncut))
+            # print(name)
             current = 0
             temp = ""
             for elem in name:
-                val = current%8
+                val = current % 8
                 if val == 0:
                     temp = elem
                 elif val == 1:
-                    temp = temp+":"+elem
+                    temp = temp + ":" + elem
                     self.proxyList.append(temp)
                 current += 1
             self.currentText = "found {} proxies at https://free-proxy-list.net/".format(len(self.proxyList))
@@ -75,11 +76,12 @@ class proxyClass():
         for link in httpLinks:
             r = requests.get(link, allow_redirects=True)
             out = r.content.decode("utf8").splitlines()
-            self.proxyList = self.proxyList+out
-            self.currentText = self.currentText+"\n"+"found {} proxies at {}".format(len(out),link)
+            self.proxyList = self.proxyList + out
+            self.currentText = self.currentText + "\n" + "found {} proxies at {}".format(len(out), link)
             self.signals.console.emit(self.currentText)
-        self.currentText = self.currentText+"\n"+"found {} proxies in total".format(len(self.proxyList))
+        self.currentText = self.currentText + "\n" + "found {} proxies in total".format(len(self.proxyList))
         self.signals.console.emit(self.currentText)
+
     def getProxies(self):
         return self.proxyList
 
@@ -88,10 +90,10 @@ class proxyClass():
         for elem in self.proxyList:
             sp = elem.split(":")
             if len(sp) == 4:
-                elem = "{}://{}:{}@{}:{}".format(typeP,sp[2],sp[3],sp[0],sp[1])
+                elem = "{}://{}:{}@{}:{}".format(typeP, sp[2], sp[3], sp[0], sp[1])
             else:
-                elem = "{}://{}:{}".format(typeP,sp[0],sp[1])
-            #print("{}".format(elem))
+                elem = "{}://{}:{}".format(typeP, sp[0], sp[1])
+            # print("{}".format(elem))
             outlist.append(elem)
         self.proxyList = outlist
 
@@ -101,14 +103,14 @@ class proxyClass():
     def checkProxy(self, pip):
         if not FINISH:
             try:
-                proxy_handler = urllib.request.ProxyHandler({'http': pip,'https': pip})
+                proxy_handler = urllib.request.ProxyHandler({'http': pip, 'https': pip})
                 opener = urllib.request.build_opener(proxy_handler)
                 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
                 urllib.request.install_opener(opener)
-                req=urllib.request.Request(WEBPAGE)  # change the URL to test here
-                sock=urllib.request.urlopen(req)
+                req = urllib.request.Request(WEBPAGE)  # change the URL to test here
+                sock = urllib.request.urlopen(req)
             except:
-                #print("ERROR:", detail)
+                # print("ERROR:", detail)
                 return -1
             return pip
 
@@ -116,36 +118,37 @@ class proxyClass():
         startTime = time.time()
         socket.setdefaulttimeout(TIMEOUT)
         pool = ThreadPool(self.nProcess)
-        #pool = multiprocessing.Pool(processes=self.nProcess)
+        # pool = multiprocessing.Pool(processes=self.nProcess)
         iterator = 0
         working = 0
         output = []
         prevText = self.currentText
-        self.signals.console.emit(prevText+"Setting up multithreading for proxies check ...")
+        self.signals.console.emit(prevText + "Setting up multithreading for proxies check ...")
         lenProxyList = len(self.proxyList)
         try:
             vals = pool.imap(self.checkProxy, self.proxyList)
             for result in vals:
-                text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator+1),lenProxyList, working, self.needs)
-                #self.progress_bar.setValue(round(float(iterator+1)/lenProxyList*100))
-                self.signals.progress.emit(round(float(iterator+1)/lenProxyList*100))
+                text = "Checking Proxies : [{}/{}] - Working : {} - Need : {}".format((iterator + 1), lenProxyList,
+                                                                                      working, self.needs)
+                # self.progress_bar.setValue(round(float(iterator+1)/lenProxyList*100))
+                self.signals.progress.emit(round(float(iterator + 1) / lenProxyList * 100))
                 if working >= self.needs:
                     self.proxyList = output
-                    return output 
-                self.signals.console.emit(prevText+"\n"+text)
-                #print(text, end="\r", flush=True)
+                    return output
+                self.signals.console.emit(prevText + "\n" + text)
+                # print(text, end="\r", flush=True)
                 if result != -1:
                     output.append(result)
-                    working+=1
-                iterator+=1
+                    working += 1
+                iterator += 1
             self.proxyList = output
         except:
             global FINISH
             FINISH = True
-        return output 
+        return output
 
+    # This comes from : https://stackoverflow.com/a/765436
 
-# This comes from : https://stackoverflow.com/a/765436
 
 '''
 # Enhanced version of what's from stackoverflow with multiprocessing
@@ -173,7 +176,7 @@ def main(nProcess, timeout):
             working+=1
         iterator+=1
     strOut = "\n".join(output)
-    #print("Working Proxies : \n{}".format(strOut))
+    #print("Working Proxies : \n{}".format  (strOut))
     return strOut
 
 # Search for free proxies and check which one are working, on google, with a timeout of 5s, on 8 threads

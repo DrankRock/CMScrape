@@ -121,7 +121,7 @@ class UIpreferences(object):
         self.grid_layout_proxy_needed.addWidget(self.n_proxy, 0, 1, 1, 1)
         self.vertical_layout.addLayout(self.grid_layout_proxy_needed)
 
-        # Using a proxyFile
+        # Using a proxy_file
         self.grid_layout_use_proxy_file = QtWidgets.QGridLayout()
         self.grid_layout_use_proxy_file.setObjectName('grid_layout_use_proxy_file')
 

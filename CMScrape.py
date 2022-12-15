@@ -28,7 +28,7 @@ MAXTHREADS = 50
 
 def help_me():
     print("-- CardMarket Scraper --")
-    print('usage: CMscrape.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
+    print('usage: CMscrape.py -i <input file or link> -o <outputfile> -s <stat_file(optional)>')
     print("Precisions about the results :")
     print(" _____________________")
     print("|     minCondition    |")
@@ -495,7 +495,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "c:ghi:to:s:", ["ifile=", "ofile=", "stats=", "cores=", "no-proxies="])
     except getopt.GetoptError:
-        print('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <statFile(optional)>')
+        print('usage: pokeScrap.0.2.py -i <input file or link> -o <outputfile> -s <stat_file(optional)>')
         sys.exit(2)
 
     for opt, arg in opts:
