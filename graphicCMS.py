@@ -181,13 +181,13 @@ class UIpreferences(object):
         self.cancel_btn.setText(_translate("preferences", "CANCEL"))
         self.add_btn.setText(_translate("preferences", "SAVE CHANGES"))
 
-    def getParameters(self):
+    def get_parameters(self):
         out = [self.n_proxy_threads.value(), self.n_proxy.value(), self.n_threads.value(), self.use_proxy_file.text(),
                self.use_proxy_file_check_box.isChecked(), self.check_proxy_file_check_box.isChecked()]
         return out
 
-    def setParameters(self, n_proxy_threads, n_proxy_val, n_threads_val, proxy_file_path, use_proxy_file_chk,
-                      check_proxy_file_chk):
+    def set_parameters(self, n_proxy_threads, n_proxy_val, n_threads_val, proxy_file_path, use_proxy_file_chk,
+                       check_proxy_file_chk):
         self.n_proxy_threads.setValue(n_proxy_threads)
         self.n_proxy.setValue(n_proxy_val)
         self.n_threads.setValue(n_threads_val)
@@ -225,9 +225,11 @@ class UiMainWindow(object):
         global SCREEN_WIDTH
         SCREEN_HEIGHT = int(sizeObject.height())
         SCREEN_WIDTH = int(sizeObject.width())
-        main_window.resize(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-        self.move((SCREEN_WIDTH / 2) - (self.frameSize().width() / 2),
-                  (SCREEN_HEIGHT / 2) - (self.frameSize().height() / 2))
+        main_window.resize(int(SCREEN_WIDTH / 2), int(SCREEN_HEIGHT / 2))
+        self.move(
+            int((SCREEN_WIDTH / 2)) - int((self.frameSize().width() / 2)),
+            int((SCREEN_HEIGHT / 2)) - int((self.frameSize().height() / 2))
+        )
         main_window.setStyleSheet("background-color: rgb(28, 39, 40);\n"
                                   "color: rgb(231, 231, 231);")
         main_window.setWindowIcon(QtGui.QIcon('ressources/logo.ico'))

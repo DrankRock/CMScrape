@@ -1,16 +1,12 @@
-import multiprocessing, time, requests, random, cchardet, lxml, csv, os, sys, traceback
-
+import csv
+import os
+import traceback
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from multiprocessing.dummy import Pool as ThreadPool
+from datetime import datetime
 from multiprocessing import Pool
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox
-from requests.adapters import HTTPAdapter
-
-from scrapeAndCheck import *
 
 import scrapers
+from scrapeAndCheck import *
 
 headers_list = [{
     'Host': 'www.cardmarket.com',

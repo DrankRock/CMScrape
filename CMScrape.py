@@ -7,13 +7,16 @@ Created on Mon Nov 15 10:44:33 2021
 """
 import getopt
 import os.path
+import sys
 
 from graphicCMS import UiMainWindow, UIpreferences
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QFileDialog, QAction
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QFileDialog, QAction, QMessageBox
 from PyQt5.QtCore import pyqtSignal
 
 from multiProcess import *
+
 
 """
 CMScrape is a scraping project with the objective to facilitate the use of CardMarket
@@ -134,8 +137,8 @@ class PreferencesDialog(QtWidgets.QDialog, UIpreferences):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         self.setup_ui(self)
-        self.addbtn.clicked.connect(self.add_button_data)
-        self.cancelbtn.clicked.connect(self.cancel_button_data)
+        self.add_btn.clicked.connect(self.add_button_data)
+        self.cancel_btn.clicked.connect(self.cancel_button_data)
 
     def add_button_data(self):
         self.accept()
@@ -144,7 +147,7 @@ class PreferencesDialog(QtWidgets.QDialog, UIpreferences):
         self.reject()
 
     def get_data(self):
-        return self.getParameters()
+        return self.get_parameters()
 
     def keyPressEvent(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier and event.key() == QtCore.Qt.Key_Q:
@@ -170,8 +173,8 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
 
         def preferences_triggered():
             dialog = PreferencesDialog(self)
-            dialog.setParameters(self.n_proxies_threads, self.n_proxy, self.n_threads, self.proxy_file_path,
-                                 self.use_proxy_file_chk, self.check_proxy_file_chk)
+            dialog.set_parameters(self.n_proxies_threads, self.n_proxy, self.n_threads, self.proxy_file_path,
+                                  self.use_proxy_file_chk, self.check_proxy_file_chk)
             result = dialog.exec_()
             if result == dialog.Accepted:
                 resultList = dialog.get_data()
@@ -188,10 +191,10 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                     self.n_proxies_threads = 50
                     print("Number of thread can't be over 50, automatically maxed to 50.")
                 self.console_disp.setPlainText(
-                    "Number of Proxies is now : {}, checked on {} threads\n",
-                    "A proxy file is used : {} - proxy file needs checking : {}\n",
-                    "If a proxy_file is used, its path is :\"{}\"\n\n"
-                    "Number of Threads for scraping is now : {}".format(
+                    "Number of Proxies is now : {}, checked on {} threads\n\
+                    A proxy file is used : {} - proxy file needs checking : {}\n\
+                    If a proxy_file is used, its path is :\"{}\"\n\n\
+                    Number of Threads for scraping is now : {}".format(
                         self.n_proxy, self.n_proxies_threads, self.use_proxy_file_chk, self.check_proxy_file_chk,
                         self.proxy_file_path, self.n_threads)
                 )

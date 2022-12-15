@@ -1,7 +1,6 @@
-import urllib.request, urllib.error, socket, requests, multiprocessing, re, sys, random, time
+import urllib.request, urllib.error, socket, requests, re, random, time
 from bs4 import BeautifulSoup
 from multiprocessing.dummy import Pool as ThreadPool
-from PyQt5 import QtWidgets
 
 WEBPAGE = 'https://www.cardmarket.com/en'
 TIMEOUT = 10
