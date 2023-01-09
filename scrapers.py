@@ -46,7 +46,7 @@ def CMSoupScraper(url, soup):
 
 		# If there are no parameters, return none.
 		if params_ref == '':
-			l = ["None"] * 9
+			l = ["None"] * 10
 			return l
 
 		# get the list of all the parameters in the url
