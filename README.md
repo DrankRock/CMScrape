@@ -42,11 +42,11 @@ You can also create a list easily using [CMList](https://github.com/DrankRock/CM
 This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket. 
 
 ### Demo :
-You will find below an example of the execution with the latest version. If needed, a YouTube version is available [here](https://youtu.be/MLnEbfotPQ0).
+You will find below an example of the execution with the latest version.
 
 
-https://user-images.githubusercontent.com/32172257/184334337-5028fcfd-e46a-4fdf-9a21-f8959da700a0.mp4  
 
+https://user-images.githubusercontent.com/32172257/213873398-58def059-f9bd-4830-9ef0-ac6a4aad3571.mp4
 
 ### Current state :
 This project is currently in developpment. It works and is tested on ubuntu 22.04 and Windows 10, mostly on yugioh and pokémon cards.
