@@ -28,9 +28,6 @@ python CMScrape.py
 
 *voilà*
 
-Note : a Proxyless use is available, faster for smaller lists (30 or fewer links) and can be switched on and off with :   
-`python CMScrape.py --no-proxies <True or False>`
-
 ---
 ### OBJECTIVE
 This tool aims to **gain time** when checking a collection's price on CardMarket.
