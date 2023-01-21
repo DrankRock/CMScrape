@@ -1,5 +1,7 @@
 # CMScrape
 Collectibles price tracker from Cardmarket links.
+![image](https://user-images.githubusercontent.com/32172257/213871276-f2dbf590-e3a3-4ee0-940e-5681f8f64067.png)
+
 
 ### Python Compatibility
 
@@ -35,7 +37,7 @@ This tool aims to **gain time** when checking a collection's price on CardMarket
 ### Setup
 The setup is quite long at the moment, you need to make a file containing all the cardmarket links to all the collectibles in your collection. You can find an example of a list [here](https://github.com/DrankRock/CMScrape/blob/main/CMScrape/myCards.txt).  
 You can easily create this list using [CMScrape's Firefox Extension](https://github.com/DrankRock/CMScrape-Extension).  
-Once the list is created, the time gain starts. You just need to execute `python3 CMScrape.py`, then choose your links file in "Choose input file", then choose a type of output. Stat is a condensed output, containing only "Date, minPrice, mean30Price, TrendPrice", as a sum of all the prices of your collection. The output is a more precised version, with for each link, details about the collectible, and prices.   
+You can also create a list easily using [CMList](https://github.com/DrankRock/CMList), my tool dedicated to this. 
 
 This tool contains options for multithreaded execution, and an auto proxies scraper/checker/rotator to avoid getting ip-blocked by CardMarket. 
 
@@ -47,10 +49,10 @@ https://user-images.githubusercontent.com/32172257/184334337-5028fcfd-e46a-4fdf-
 
 
 ### Current state :
-This project is currently in developpment. It works and is tested on ubuntu 16.04 and Windows 10, mostly on yugioh and pokémon cards.
+This project is currently in developpment. It works and is tested on ubuntu 22.04 and Windows 10, mostly on yugioh and pokémon cards.
 If you have any suggestions or any kind of feedback, you can contact me on discord on [the dedicated discord server](https://discord.gg/UR3R5C5Ehn).
 
-Note : this project was developped on Ubuntu 16.04. If you face any issue with the execution, please let me know.
+Note : this project was developped on Ubuntu 22.04. If you face any issue with the execution, please let me know.
 
 ## Download :
 ```shell
