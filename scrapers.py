@@ -13,6 +13,8 @@ from scrapeAndCheck import *
 
 def CMSoupScraper(url, soup):
 	def priceToFloat(price):
+		if price == "None":
+			return "N/A"
 		return round(float(price.replace(".","").replace(",",".").replace("€","")),3)
 
 	"""

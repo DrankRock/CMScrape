@@ -182,11 +182,11 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
             if scrapes != -1:
                 for iteration in range(urls_occurrences_dictionnary.get(currentURL)):
                     try:
-                        if scrapes[6] != 'None':
+                        if scrapes[6] != "N/A":
                             minPrice += float(scrapes[6])
-                        if scrapes[7] != 'None':
+                        if scrapes[7] != "N/A":
                             trendPrice += float(scrapes[7])
-                        if scrapes[8] != 'None':
+                        if scrapes[8] != "N/A":
                             mean30Price += float(scrapes[8])
                     except Exception as e:
                         pass
