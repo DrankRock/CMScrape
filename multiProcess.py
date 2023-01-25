@@ -152,7 +152,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
     csv_writer = csv.writer(opened_outFile)
     csv_writer.writerow(
         ['attribute', 'game', 'item', 'extension', 'number', 'name', 'min_price', 'price_trend', 'mean30d_price',
-         'language', 'sellerType', 'minCondition', 'isSigned', 'isFirstEd', 'isPlayset', 'isAltered', 'isReverseHolo',
+         'language', 'sellerCountry', 'sellerType', 'minCondition', 'isSigned', 'isFirstEd', 'isPlayset', 'isAltered', 'isReverseHolo',
          'isFoil', 'url'])
 
     currentText = "Starting multithreading for scraping ..."
