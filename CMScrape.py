@@ -374,7 +374,7 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         # options |= self.fileDialog.setDefaultSuffix(self.fileDialog, "csv")
         # filename, _ = self.fileDialog.getOpenFileName(self, 'Open File', '.')
         fileName, _ = self.fileDialog.getOpenFileName(self, "Chose desired input file", self.inputFolderPath,
-                                                      "Text Files (*.txt)", options=options)
+                                                      "*", options=options)
         if fileName:
             # print(fileName)
             self.inputFileChosen = fileName
