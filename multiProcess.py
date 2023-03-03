@@ -191,7 +191,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
     if check_top_sellers :
         csv_writer_sellers = csv.writer(opened_outfile_sellers,delimiter=',', quotechar='"')
         csv_writer_sellers.writerow(
-            ['Game', 'Card name','Card extension','seller country', 'seller name', 'seller type', 'badge', 'infos', 'price', 'number']
+            ['Game', 'Card extension', 'Number', 'Card name','seller country', 'seller name', 'seller type', 'badge', 'infos', 'price', 'number']
         )
 
     currentText = "Starting multithreading for scraping ..."
@@ -240,7 +240,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
                     iterator += 1
                 if len(sellers) != 0:
                     if check_top_sellers:
-                        list_scrap = [scrapes[1], scrapes[2], scrapes[3]]
+                        list_scrap = [scrapes[1], scrapes[3], scrapes[4], scrapes[5]]
                         for seller in sellers:
                             seller_list = list_scrap[:]
                             seller_list += seller
