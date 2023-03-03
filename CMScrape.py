@@ -97,7 +97,7 @@ class WorkerSignals(QtCore.QObject):
 # This tutorial. To avoid pyqt5 freezes.
 class Worker(QtCore.QRunnable):
     def __init__(self, chosen_file_lbl, chosen_out_lbl, chosen_stat_lbl, n_threads, n_proxies_threads, n_proxy,
-                 proxy_file, use_proxy_file, check_proxy_file, no_proxies_max):
+                 proxy_file, use_proxy_file, check_proxy_file, no_proxies_max, check_top_sellers, n_top_sellers, name_top_seller):
         super(Worker, self).__init__()
         # run's variables
         self.chosen_in = chosen_file_lbl
@@ -110,6 +110,9 @@ class Worker(QtCore.QRunnable):
         self.use_proxy_file = use_proxy_file
         self.check_proxy_file = check_proxy_file
         self.no_proxies_max = no_proxies_max
+        self.check_top_sellers = check_top_sellers
+        self.n_top_sellers = n_top_sellers
+        self.name_top_seller = name_top_seller
 
         self.signals = WorkerSignals()
 
@@ -127,7 +130,8 @@ class Worker(QtCore.QRunnable):
             if isOut == False and isStat == False:
                 self.signals.console.emit("[WARNING]\nYou did not choose any type of output.")
             multiProcess(inFile, self.n_threads, self.n_proxies_threads, self.n_proxy, isOut, isStat, self.proxy_file,
-                         self.use_proxy_file, self.check_proxy_file, self.no_proxies_max, self.signals)
+                         self.use_proxy_file, self.check_proxy_file, self.no_proxies_max, self.check_top_sellers,
+                         self.n_top_sellers, self.name_top_seller , self.signals)
 
 
 # =############################################################=#
@@ -166,7 +170,7 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         def about_triggered():
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Information)
-            text = "This project was developped by\n- DrankRock -"
+            text = "This project was developed by\n- DrankRock -"
             msg.setInformativeText(text)
             msg.setWindowTitle("About")
             msg.exec_()
@@ -174,7 +178,8 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         def preferences_triggered():
             dialog = PreferencesDialog(self)
             dialog.set_parameters(self.n_proxies_threads, self.n_proxy, self.n_threads, self.proxy_file_path,
-                                  self.use_proxy_file_chk, self.check_proxy_file_chk)
+                                  self.use_proxy_file_chk, self.check_proxy_file_chk, self.use_top_sellers_chk,
+                                  self.n_top_sellers, self.name_top_seller)
             result = dialog.exec_()
             if result == dialog.Accepted:
                 resultList = dialog.get_data()
@@ -184,6 +189,9 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                 self.proxy_file_path = resultList[3]
                 self.use_proxy_file_chk = resultList[4]
                 self.check_proxy_file_chk = resultList[5]
+                self.use_top_sellers_chk = resultList[6]
+                self.n_top_sellers = resultList[7]
+                self.name_top_seller = resultList[8]
                 if self.n_threads > 50:
                     self.n_threads = 50
                     print("Number of thread can't be over 50, automatically maxed to 50.")
@@ -194,18 +202,20 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                     "Number of Proxies is now : {}, checked on {} threads\n\
                     A proxy file is used : {} - proxy file needs checking : {}\n\
                     If a proxy_file is used, its path is :\"{}\"\n\n\
-                    Number of Threads for scraping is now : {}".format(
+                    Number of Threads for scraping is now : {}\nSaving the top {} sellers : {} in file {} ".format(
                         self.n_proxy, self.n_proxies_threads, self.use_proxy_file_chk, self.check_proxy_file_chk,
-                        self.proxy_file_path, self.n_threads)
+                        self.proxy_file_path, self.n_threads, self.n_top_sellers, self.use_top_sellers_chk, self.name_top_seller)
                 )
                 with open('.cmscrape', 'w') as f:
                     f.write(
                         "'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'Proxy_file_path' : {}\n"
                         "'use_proxy_file' : {}\n'check_proxy_file' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n"
-                        "'StatFolder' : {}\n'no_proxies_max' : {}".format(
+                        "'StatFolder' : {}\n'no_proxies_max' : {}\n'use_top_sellers_chk' : {}\n'n_top_sellers' : {}\n"
+                        "'name_top_seller' : {}".format(
                             self.n_proxies_threads, self.n_threads, self.n_proxy, self.proxy_file_path,
                             self.use_proxy_file_chk, self.check_proxy_file_chk, self.inputFolderPath,
-                            self.outputFolderPath, self.statFolderPath, self.no_proxies_max)
+                            self.outputFolderPath, self.statFolderPath, self.no_proxies_max, self.use_top_sellers_chk,
+                            self.n_top_sellers, self.name_top_seller)
                     )
 
         menuBar = self.menuBar()
@@ -257,6 +267,9 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         self.outputFolderPath = ''
         self.statFolderPath = ''
         self.no_proxies_max = 0
+        self.use_top_sellers_chk = False
+        self.n_top_sellers = 0
+        self.name_top_seller = ""
         self.threadpool = QtCore.QThreadPool()
         self.loadConfig()
         if "--no-proxies" in sys.argv:
@@ -288,10 +301,10 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
             f.write(
                 "'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'Proxy_file_path' : {}\n'use_proxy_file' : {}\n"
                 "'check_proxy_file' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n'StatFolder' : {}\n"
-                "'no_proxies_max' : {}".format(
+                "'no_proxies_max' : {}\n'use_top_sellers_chk' : {}\n'n_top_sellers' : {}\n'name_top_seller' : {}".format(
                     self.n_proxies_threads, self.n_threads, self.n_proxy, self.proxy_file_path, self.use_proxy_file_chk,
                     self.check_proxy_file_chk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath,
-                    self.no_proxies_max)
+                    self.no_proxies_max, self.use_top_sellers_chk, self.n_top_sellers, self.name_top_seller)
             )
 
     def proxyChoice(self):
@@ -336,6 +349,13 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                         self.check_proxy_file_chk = True
                     else:
                         self.check_proxy_file_chk = False
+                if split_line[0] == "'use_top_sellers_chk'":
+                    if split_line[1] == 'True':
+                        self.use_top_sellers_chk = True
+                    else:
+                        self.use_top_sellers_chk = False
+                if split_line[0] == "'n_top_sellers'":
+                    self.n_top_sellers = int(split_line[1])
                 #  I/O
                 if split_line[0] == "'InputFolder'":
                     self.inputFolderPath = str(split_line[1])
@@ -343,6 +363,12 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                     self.outputFolderPath = str(split_line[1])
                 if split_line[0] == "'StatFolder'":
                     self.statFolderPath = str(split_line[1])
+                if split_line[0] == "'name_top_seller'":
+                    if len(split_line[1]) < 1:
+                        self.name_top_seller = ""
+                    else :
+                        self.name_top_seller = split_line[1]
+
             if self.n_threads > MAXTHREADS or self.n_proxies_threads > MAXTHREADS:
                 print("ERROR : Can't run with over 50 Proxies. Please modify them using CTRL+P")
         else:
@@ -357,14 +383,18 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                 self.outputFolderPath = ''
                 self.statFolderPath = ''
                 self.no_proxies_max = "True"
+                self.use_top_sellers_chk = False
+                self.n_top_sellers = 0
+                self.name_top_seller = ""
                 f.write(
                     "'ProxiesThreads' : {}\n'Threads' : {}\n'Proxies' : {}\n'Proxy_file_path' : {}\n"
                     "'use_proxy_file' : {}\n'check_proxy_file' : {}\n'InputFolder' : {}\n'OutputFolder' : {}\n"
-                    "'StatFolder' : {}\n'no_proxies_max' : {}".format(
+                    "'StatFolder' : {}\n'no_proxies_max' : {}\n'use_top_sellers_chk' : {}\n'n_top_sellers' : {}\n"
+                    "'name_top_seller' : {}".format(
                         self.n_proxies_threads, self.n_threads, self.n_proxy, self.proxy_file_path,
                         self.use_proxy_file_chk,
                         self.check_proxy_file_chk, self.inputFolderPath, self.outputFolderPath, self.statFolderPath,
-                        self.no_proxies_max)
+                        self.no_proxies_max, self.use_top_sellers_chk, self.n_top_sellers, self.name_top_seller)
                 )
 
     def inputFileDialog(self):
@@ -462,8 +492,8 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         else:
             worker = Worker(self.chosen_file_lbl.text(), self.chosen_out_lbl.text(), self.chosen_stat_lbl.text(),
                             self.n_threads, self.n_proxies_threads, self.n_proxy, self.proxy_file_path,
-                            self.use_proxy_file_chk,
-                            self.check_proxy_file_chk, self.no_proxies_max)
+                            self.use_proxy_file_chk, self.check_proxy_file_chk, self.no_proxies_max,
+                            self.use_top_sellers_chk, self.n_top_sellers, self.name_top_seller)
             self.threadpool.start(worker)
             worker.signals.progress.connect(self.update_progress)
             worker.signals.console.connect(self.update_console)
