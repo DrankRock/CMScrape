@@ -204,6 +204,9 @@ Small things can be improved, proxies added, interface made nicer especially on 
 #### TODO :
 Create a card scanner using OpenCV (this is a distant todo, as I have near to no experience in opencv)   
 
+### Want to buy me a coffee ?
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/R6R3J2GQO)
+
 ### Thanks to :
 The logo was created from another one created by Gregor Cresnar from the Noun Project.
 Special thanks to [Ngapi](https://github.com/Ngapi) for his help, his advices, his thorough windows testing, all the idea he gave and the time he spent telling me what was wrong and what could be enhanced while his computer crashed.
