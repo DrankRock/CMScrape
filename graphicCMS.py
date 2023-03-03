@@ -30,6 +30,10 @@ preference_spinbox_min_size = QtCore.QSize(int(SCREEN_WIDTH / 5.8), 20)
 
 class UIpreferences(object):
     def __init__(self):
+        self.find_top_sellers_file_name = None
+        self.grid_layout_top_sellers_right = None
+        self.grid_layout_top_sellers_left = None
+        self.grid_layout_top_sellers = None
         self.add_btn = None
         self.button_gridlayout_4 = None
         self.cancel_btn = None
@@ -50,7 +54,11 @@ class UIpreferences(object):
         self.use_proxy_file = None
         self.use_proxy_file_check_box = None
         self.use_proxy_file_lbl = None
+        self.find_top_sellers_lbl = None
+        self.find_top_sellers_check_box = None
+        self.find_top_sellers_number = None
         self.vertical_layout = None
+
 
     def setup_ui(self, preferences):
         preferences.setObjectName("preferences")
@@ -73,6 +81,44 @@ class UIpreferences(object):
         self.in_title_1.setObjectName("in_title_1")
         self.grid_layout_t_i.addWidget(self.in_title_1, 0, 0, 1, 1)
         self.vertical_layout.addLayout(self.grid_layout_t_i)
+
+        # Number of Top sellers to scrape
+        self.grid_layout_top_sellers = QtWidgets.QGridLayout()
+        self.grid_layout_top_sellers_left = QtWidgets.QGridLayout()
+        self.grid_layout_top_sellers_right = QtWidgets.QGridLayout()
+
+        self.grid_layout_top_sellers.setObjectName('grid_layout_top_sellers')
+
+        self.find_top_sellers_lbl = QtWidgets.QLabel(preferences)
+        self.find_top_sellers_lbl.setMinimumSize(preference_lbl_min_size)
+        self.find_top_sellers_lbl.setObjectName('find_top_sellers_lbl')
+        self.grid_layout_top_sellers_left.addWidget(self.find_top_sellers_lbl, 0, 1, 1, 1)
+
+        self.find_top_sellers_check_box = QtWidgets.QCheckBox("Find top sellers")
+        self.find_top_sellers_check_box.setMinimumSize(preference_lbl_min_size)
+        self.find_top_sellers_check_box.setObjectName('find_top_sellers_check_box')
+        self.grid_layout_top_sellers_left.addWidget(self.find_top_sellers_check_box, 0, 0, 1, 1)
+
+        self.find_top_sellers_number = QtWidgets.QSpinBox(preferences)
+        self.find_top_sellers_number.setMinimumSize(preference_spinbox_min_size)
+        self.find_top_sellers_number.setBaseSize(preference_spinbox_min_size)
+        self.find_top_sellers_number.setObjectName('find_top_sellers_number')
+        self.find_top_sellers_number.setMaximum(50)  # without modifying page, by default there are 50 sellers shown
+        self.grid_layout_top_sellers_right.addWidget(self.find_top_sellers_number, 0, 0, 1, 1)
+
+        self.find_top_sellers_file_name = QtWidgets.QLineEdit(preferences)
+        self.find_top_sellers_file_name.setMinimumSize(preference_spinbox_min_size)
+        self.find_top_sellers_file_name.setBaseSize(preference_spinbox_min_size)
+        self.find_top_sellers_file_name.setObjectName('find_top_sellers_file_name')
+        self.find_top_sellers_file_name.setPlaceholderText("name of file");
+        self.grid_layout_top_sellers_right.addWidget(self.find_top_sellers_file_name, 0, 1, 1, 1)
+
+
+
+        self.grid_layout_top_sellers.addLayout(self.grid_layout_top_sellers_left, 0, 0, 1, 1)
+        self.grid_layout_top_sellers.addLayout(self.grid_layout_top_sellers_right, 0, 1, 1, 1)
+
+        self.vertical_layout.addLayout(self.grid_layout_top_sellers)
 
         # Number of Threads in scraping
         self.grid_layout_3 = QtWidgets.QGridLayout()
@@ -170,6 +216,12 @@ class UIpreferences(object):
         self.retranslate_ui(preferences)
         QtCore.QMetaObject.connectSlotsByName(preferences)
 
+        total_height = self.vertical_layout.sizeHint().height()
+        num_lines = self.vertical_layout.count()
+        spacing = (self.height() - total_height) // (num_lines + 1)
+        self.vertical_layout.setSpacing(spacing)
+
+
     def retranslate_ui(self, preferences):
         _translate = QtCore.QCoreApplication.translate
         preferences.setWindowTitle(_translate("preferences", "preferences"))
@@ -180,20 +232,26 @@ class UIpreferences(object):
         self.n_threads_lbl.setText(_translate("preferences", "Number of Threads"))
         self.cancel_btn.setText(_translate("preferences", "CANCEL"))
         self.add_btn.setText(_translate("preferences", "SAVE CHANGES"))
+        self.find_top_sellers_lbl.setText(_translate("preferences", "Number of top sellers :"))
+
 
     def get_parameters(self):
         out = [self.n_proxy_threads.value(), self.n_proxy.value(), self.n_threads.value(), self.use_proxy_file.text(),
-               self.use_proxy_file_check_box.isChecked(), self.check_proxy_file_check_box.isChecked()]
+               self.use_proxy_file_check_box.isChecked(), self.check_proxy_file_check_box.isChecked(),
+               self.find_top_sellers_check_box.isChecked(), self.find_top_sellers_number.value(), self.find_top_sellers_file_name.text()]
         return out
 
     def set_parameters(self, n_proxy_threads, n_proxy_val, n_threads_val, proxy_file_path, use_proxy_file_chk,
-                       check_proxy_file_chk):
+                       check_proxy_file_chk, check_top_seller_chk, n_top_sellers_val, find_top_sellers_file_name):
         self.n_proxy_threads.setValue(n_proxy_threads)
         self.n_proxy.setValue(n_proxy_val)
         self.n_threads.setValue(n_threads_val)
         self.use_proxy_file.setText(proxy_file_path)
         self.use_proxy_file_check_box.setChecked(use_proxy_file_chk)
         self.check_proxy_file_check_box.setChecked(check_proxy_file_chk)
+        self.find_top_sellers_check_box.setChecked(check_top_seller_chk)
+        self.find_top_sellers_number.setValue(n_top_sellers_val)
+        self.find_top_sellers_file_name.setText(find_top_sellers_file_name)
 
 
 class UiMainWindow(object):
