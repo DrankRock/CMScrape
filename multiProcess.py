@@ -5,8 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from multiprocessing import Pool
 
+import findTopSellers
 import scrapers
 from scrapeAndCheck import *
+from findTopSellers import *
 
 headers_list = [{
     'Host': 'www.cardmarket.com',
@@ -66,7 +68,7 @@ class URLDataclass:
     attribute: str
 
 
-# url = 'https://www.cardmarket.com/en'
+# input_url = 'https://www.cardmarket.com/en'
 global TIME_MAX
 global CURRENT_VALUE_PROXYLESS
 global MAX_PROXYLESS_REQUESTS
@@ -79,6 +81,8 @@ session = None
 currentText = ""
 urls_occurrences_dictionnary = {}
 total_number_of_url = 0
+check_sellers = False
+n_sellers = 0
 
 SLEEP_TIME = 5
 
@@ -117,16 +121,19 @@ def fun1(url):
                 continue
         break
     soup = BeautifulSoup(response.text, 'lxml')
-    listScrap = scrapers.CMSoupScraper(url.url, soup)
-    listScrap.insert(0, url.attribute)
-    return listScrap
+    list_scrap = scrapers.CMSoupScraper(url.url, soup)
+    list_scrap.insert(0, url.attribute)
+    sellers = []
+    if check_sellers :
+        sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
+    return list_scrap, sellers
 
 
-def fun1_noProxies(url):
+def fun1_noProxies(input_url):
     while True:
         try:
             headers = random.choice(headers_list)
-            response = session.get(url.url, headers=headers, timeout=5)
+            response = session.get(input_url.url, headers=headers, timeout=5)
             if response.status_code == 429:
                 print("There are currently too many requests. Execution will pause for around 60 seconds.", end="\r")
                 raise ValueError("TOO MANY REQUESTS")
@@ -136,31 +143,63 @@ def fun1_noProxies(url):
             continue
         break
     soup = BeautifulSoup(response.text, 'lxml')
-    listScrap = scrapers.CMSoupScraper(url.url, soup)
-    listScrap.insert(0, url.attribute)
-    return listScrap
+    list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
+    sellers = []
+    if check_sellers :
+        sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
+    list_scrap.insert(0, input_url.attribute)
+    return list_scrap, sellers
 
 
-def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, pool_type):
+def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, check_top_sellers, n_top_sellers,
+             top_seller_name, pool_type):
     global currentText
     # print("multimap start")
+
     if out_file:
-        opened_outFile = open(out_file, 'w', newline='', encoding='utf-8')
+        opened_outfile = open(out_file, 'w', newline='', encoding='utf-8')
     else:
-        opened_outFile = open(os.devnull, 'w', newline='')
+        opened_outfile = open(os.devnull, 'w', newline='')
+
+    # if out_file is not set, it is "False".
+    if not out_file :
+        output_file_name = "output.csv"
+    else :
+        output_file_name = out_file
+    extension = output_file_name.split(".")[-1]
+    name = ''.join(output_file_name.split(".")[:-1])
+    opened_outfile_sellers = name+"_sellers"+extension
+
+    if check_top_sellers :
+        if top_seller_name != "":
+            if not "." in top_seller_name :
+                top_seller_name = top_seller_name+".csv"
+            opened_outfile_sellers = open(top_seller_name, 'w', newline='', encoding='utf-8')
+        else :
+            opened_outfile_sellers = open(opened_outfile_sellers, 'w', newline='', encoding='utf-8')
+    global check_sellers
+    check_sellers = check_top_sellers
+    global n_sellers
+    n_sellers = n_top_sellers
     # setup csv_writer for the output file
-    csv_writer = csv.writer(opened_outFile)
+    csv_writer = csv.writer(opened_outfile)
     csv_writer.writerow(
         ['attribute', 'game', 'item', 'extension', 'number', 'name', 'min_price', 'price_trend', 'mean30d_price',
          'language', 'sellerCountry', 'sellerType', 'minCondition', 'isSigned', 'isFirstEd', 'isPlayset', 'isAltered', 'isReverseHolo',
-         'isFoil', 'url'])
+         'isFoil', 'input_url'])
+    csv_writer_sellers = None
+    if check_top_sellers :
+        csv_writer_sellers = csv.writer(opened_outfile_sellers,delimiter=',', quotechar='"')
+        csv_writer_sellers.writerow(
+            ['Game', 'Card name','Card extension','seller country', 'seller name', 'seller type', 'badge', 'infos', 'price', 'number']
+        )
 
     currentText = "Starting multithreading for scraping ..."
     signals.console.emit(currentText)
 
     # variables
     iterator = 1
-    workingIterator = 0
+    working_iterator = 0
     minPrice = 0.0
     trendPrice = 0.0
     mean30Price = 0.0
@@ -178,7 +217,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
 
     if pool_size == 1:
         for currentURL in url_list:
-            scrapes = fun1_noProxies(currentURL)
+            scrapes, sellers = fun1_noProxies(currentURL)
             if scrapes != -1:
                 for iteration in range(urls_occurrences_dictionnary.get(currentURL)):
                     try:
@@ -196,17 +235,25 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
                         iterator, total_number_of_url, round(minPrice, 3), round(trendPrice, 3), round(mean30Price, 3))
                     signals.console.emit(currentText)
                     signals.progress.emit(round(float(iterator) / total_number_of_url * 100))
-                    workingIterator += 1
+                    working_iterator += 1
                     csv_writer.writerow(scrapes)
                     iterator += 1
+                if len(sellers) != 0:
+                    if check_top_sellers:
+                        list_scrap = [scrapes[1], scrapes[2], scrapes[3]]
+                        for seller in sellers:
+                            seller_list = list_scrap[:]
+                            seller_list += seller
+                            csv_writer_sellers.writerow(seller_list)
+
     else:
-        myFunction = fun1
+        my_function = fun1
         try:
-            for scrapes in p.imap(myFunction, url_list):
+            for scrapes, sellers in p.imap(my_function, url_list):
                 if scrapes != -1:
-                    current_URL = str(scrapes[len(scrapes) - 1]).replace('"', '')
-                    tempURLdc = URLDataclass(current_URL, scrapes[0])
-                    for iteration in range(urls_occurrences_dictionnary.get(tempURLdc)):
+                    current_url = str(scrapes[len(scrapes) - 1]).replace('"', '')
+                    temp_url_dc = URLDataclass(current_url, scrapes[0])
+                    for iteration in range(urls_occurrences_dictionnary.get(temp_url_dc)):
                         try:
                             if scrapes[6] != 'None':
                                 minPrice += float(scrapes[6])
@@ -223,9 +270,17 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
                             round(mean30Price, 3))
                         signals.console.emit(currentText)
                         signals.progress.emit(round(float(iterator) / total_number_of_url * 100))
-                        workingIterator += 1
+                        working_iterator += 1
                         csv_writer.writerow(scrapes)
                         iterator += 1
+                    if len(sellers) != 0:
+                        if check_top_sellers:
+                            list_scrap = [scrapes[1], scrapes[2], scrapes[3]]
+                            for seller in sellers:
+                                seller_list = list_scrap[:]
+                                seller_list += seller
+                                csv_writer_sellers.writerow(seller_list)
+
         except Exception as e:
             print("Exception caught during scraping : \n{}".format(traceback.format_exc()))
             print("[WARNING]\nPlease wait for the processes to safely quit")
@@ -233,36 +288,36 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
             p.close()
             p.join()
             print("Processes stopped.")
-    currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(workingIterator,
+    currentText = currentText + "\nSuccessfully scraped {} out of {} links.".format(working_iterator,
                                                                                     total_number_of_url)
     signals.console.emit(currentText)
     csv_writer.writerow(
-        ['', '', '', 'Number of cards', workingIterator, 'Total Prices:', minPrice, trendPrice, mean30Price])
+        ['', '', '', 'Number of cards', working_iterator, 'Total Prices:', minPrice, trendPrice, mean30Price])
     if not ACTIVATE_ATTRIBUTES and out_file != False:
-        opened_outFile.close()
-        opened_outFile = open(out_file, 'r', newline='', encoding='utf-8')
-        csv_reader = csv.reader(opened_outFile)
+        opened_outfile.close()
+        opened_outfile = open(out_file, 'r', newline='', encoding='utf-8')
+        csv_reader = csv.reader(opened_outfile)
         csv_copy = []
         for row in csv_reader:
             csv_copy.append(row)
-        opened_outFile.close()
-        opened_outFile = open(out_file, 'w+', newline='', encoding='utf-8')
-        opened_outFile.close()
-        opened_outFile = open(out_file, 'w', newline='', encoding='utf-8')
-        csv_writer = csv.writer(opened_outFile)
+        opened_outfile.close()
+        opened_outfile = open(out_file, 'w+', newline='', encoding='utf-8')
+        opened_outfile.close()
+        opened_outfile = open(out_file, 'w', newline='', encoding='utf-8')
+        csv_writer = csv.writer(opened_outfile)
         for row in csv_copy:
             csv_writer.writerow(row[1:])
-        opened_outFile.close()
+        opened_outfile.close()
 
     if stat_file:
         with open(stat_file, 'a', newline='', encoding='utf-8') as f:
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             print("{}, {}, {}, {}".format(now, minPrice, trendPrice, mean30Price), file=f)
-    return workingIterator
+    return working_iterator
 
 
 def multiProcess(input_file, pool_size, proxy_pool_size, n_proxy, out_file, stat_file, proxy_file, use_proxy_file,
-                 check_proxy_file, no_proxies_max, signals):
+                 check_proxy_file, no_proxies_max, check_top_sellers, n_top_sellers, top_seller_name, signals):
     global prox
     global currentText
 
@@ -321,7 +376,8 @@ def multiProcess(input_file, pool_size, proxy_pool_size, n_proxy, out_file, stat
 
     signals.progress.emit(-2)  # change stylesheet to scraping
     signals.progress.emit(0)
-    working_iterator = multiMap(urlList, pool_size, out_file, stat_file, signals, no_proxies_max, 'Threads')
+    working_iterator = multiMap(urlList, pool_size, out_file, stat_file, signals, no_proxies_max, check_top_sellers,
+                                n_top_sellers, top_seller_name, 'Threads')
     currentText = currentText + "\nOperation lasted {} seconds.".format(round(time.time() - start), 3)
     if out_file:
         currentText = currentText + "\nSuccessfully wrote output file in :\n{}".format(out_file)
