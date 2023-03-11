@@ -122,6 +122,7 @@ def fun1(url):
         break
     soup = BeautifulSoup(response.text, 'lxml')
     list_scrap = scrapers.CMSoupScraper(url.url, soup)
+
     list_scrap.insert(0, url.attribute)
     sellers = []
     if check_sellers :
@@ -145,7 +146,7 @@ def fun1_noProxies(input_url):
     soup = BeautifulSoup(response.text, 'lxml')
     list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
     sellers = []
-    if check_sellers :
+    if check_sellers and list_scrap != -1:
         sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
     list_scrap.insert(0, input_url.attribute)
     return list_scrap, sellers
