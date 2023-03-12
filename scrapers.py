@@ -124,6 +124,7 @@ def CMSoupScraper(url, soup):
 			if expansion_uncut != []:
 				expansion = re.search('">(.*)</a',str(expansion_uncut))
 				expansion = expansion.group(1)
+				expansion = expansion.replace("&amp;", "&")
 				
 			number = soup.find_all("dd", class_="d-none d-md-block col-6 col-xl-7")
 			if number != []:
@@ -152,7 +153,7 @@ def CMSoupScraper(url, soup):
 		# Returns a normal list. The objects within the list might contain unwanted ",", especially in the name and url areas.
 		#print("Done {}\n{}".format(url,returnListe))
 		return returnListe
-	except:
+	except Exception as exp:
 		print("WARNING - The url \"{}\" does not work. This could mean that the page was updated and the url changed. Please update it !".format(url))
-		#print("Exception : \n{}".format(exp))
+		# print("Exception : \n{}".format(exp))
 		return -1
