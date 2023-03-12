@@ -101,10 +101,11 @@ def init_process():
 
 def fun1(url):
     tries = 1
+    working = True
     while True:
         try:
             if tries >= 13:
-                raise ValueError("REQUEST NOT WORKING AFTER 65 SEC")
+                raise ValueError("REQUEST NOT WORKING AFTER 70 SEC")
             proxy = prox.randomProxy()
             proxyDict = {'http': proxy, 'https': proxy}
             headers = random.choice(headers_list)
@@ -113,26 +114,34 @@ def fun1(url):
                 raise ValueError("TOO MANY REQUESTS")
         # text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
         except:
-            if tries >= 13:
+            if tries >= 14:
+                working = False
                 break
             else:
                 tries = tries + 1
-                time.sleep(1)
+                time.sleep(SLEEP_TIME)
                 continue
         break
-    soup = BeautifulSoup(response.text, 'lxml')
-    list_scrap = scrapers.CMSoupScraper(url.url, soup)
-
-    list_scrap.insert(0, url.attribute)
-    sellers = []
-    if check_sellers :
-        sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
-    return list_scrap, sellers
+    if working:
+        soup = BeautifulSoup(response.text, 'lxml')
+        list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
+        sellers = []
+        if check_sellers and list_scrap != -1:
+            sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
+        if list_scrap != -1:
+            list_scrap.insert(0, input_url.attribute)
+        return list_scrap, sellers
+    else:
+        return -1, -1
 
 
 def fun1_noProxies(input_url):
+    tries = 0
+    working = True
     while True:
         try:
+            if tries >= 13:
+                raise ValueError("REQUEST NOT WORKING AFTER 70 SEC")
             headers = random.choice(headers_list)
             response = session.get(input_url.url, headers=headers, timeout=5)
             if response.status_code == 429:
@@ -140,16 +149,25 @@ def fun1_noProxies(input_url):
                 raise ValueError("TOO MANY REQUESTS")
         # text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
         except:
-            time.sleep(SLEEP_TIME)
-            continue
+            if tries >= 14:
+                working = False
+                break
+            else:
+                tries = tries + 1
+                time.sleep(SLEEP_TIME)
+                continue
         break
-    soup = BeautifulSoup(response.text, 'lxml')
-    list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
-    sellers = []
-    if check_sellers and list_scrap != -1:
-        sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
-    list_scrap.insert(0, input_url.attribute)
-    return list_scrap, sellers
+    if working :
+        soup = BeautifulSoup(response.text, 'lxml')
+        list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
+        sellers = []
+        if check_sellers and list_scrap != -1:
+            sellers = findTopSellers.soupToTopXSellers(soup, n_sellers)
+        if list_scrap != -1 :
+            list_scrap.insert(0, input_url.attribute)
+        return list_scrap, sellers
+    else :
+        return -1, -1
 
 
 def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, check_top_sellers, n_top_sellers,
@@ -192,7 +210,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
     if check_top_sellers :
         csv_writer_sellers = csv.writer(opened_outfile_sellers,delimiter=',', quotechar='"')
         csv_writer_sellers.writerow(
-            ['Game', 'Card extension', 'Number', 'Card name','seller country', 'seller name', 'seller type', 'badge', 'infos', 'price', 'number']
+            ['Game', 'Card extension', 'Number', 'Card name','seller country', 'seller name', 'seller type', 'badge', 'infos', 'price', 'number', 'url']
         )
 
     currentText = "Starting multithreading for scraping ..."
@@ -245,6 +263,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
                         for seller in sellers:
                             seller_list = list_scrap[:]
                             seller_list += seller
+                            seller_list.append(scrapes[-1])
                             csv_writer_sellers.writerow(seller_list)
 
     else:
@@ -280,6 +299,7 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
                             for seller in sellers:
                                 seller_list = list_scrap[:]
                                 seller_list += seller
+                                seller_list.append(scrapes[-1])
                                 csv_writer_sellers.writerow(seller_list)
 
         except Exception as e:
