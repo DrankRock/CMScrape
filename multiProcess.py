@@ -99,7 +99,7 @@ def init_process():
     session = requests.Session()
 
 
-def fun1(url):
+def fun1(input_url):
     tries = 1
     working = True
     while True:
@@ -109,11 +109,11 @@ def fun1(url):
             proxy = prox.randomProxy()
             proxyDict = {'http': proxy, 'https': proxy}
             headers = random.choice(headers_list)
-            response = session.get(url.url, headers=headers, proxies=proxyDict, timeout=5)
+            response = session.get(input_url.url, headers=headers, proxies=proxyDict, timeout=5)
             if response.status_code == 429:
                 raise ValueError("TOO MANY REQUESTS")
         # text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
-        except:
+        except Exception as exp:
             if tries >= 14:
                 working = False
                 break
