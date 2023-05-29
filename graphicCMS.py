@@ -270,7 +270,7 @@ class UiMainWindow(object):
         self.stat_btn = None
         self.vertical_layout = None
         self.horizontal_layout = None
-        self.proxy_btn = None
+        # self.proxy_btn = None
         self.vertical_layout_prox = None
         self.grid_layout = None
         self.central_widget = None
@@ -304,10 +304,10 @@ class UiMainWindow(object):
         self.vertical_layout_prox.setObjectName("vertical_layout_prox")
 
         # ## Switch at the top for Proxies or Proxyless
-        self.proxy_btn = QtWidgets.QPushButton(self.central_widget)
-        self.proxy_btn.setMinimumSize(QtCore.QSize(131, 23))
-        self.proxy_btn.setObjectName("proxy_btn")
-        self.vertical_layout_prox.addWidget(self.proxy_btn)
+        # self.proxy_btn = QtWidgets.QPushButton(self.central_widget)
+        # self.proxy_btn.setMinimumSize(QtCore.QSize(131, 23))
+        # self.proxy_btn.setObjectName("proxy_btn")
+        # self.vertical_layout_prox.addWidget(self.proxy_btn)
         # ## ------------
 
         # Horizontal Layout for < buttons | labels >
@@ -421,7 +421,7 @@ class UiMainWindow(object):
     def retranslateUi(self, main_window):
         _translate = QtCore.QCoreApplication.translate
         main_window.setWindowTitle(_translate("main_window", "CMScrape - CardMarket Price Tracker"))
-        self.proxy_btn.setText(_translate("main_window", "Without Proxies (limited to 30/min)"))
+        # self.proxy_btn.setText(_translate("main_window", "Without Proxies (limited to 30/min)"))
         self.input_btn.setText(_translate("main_window", "Choose Input File"))
         self.stat_btn.setText(_translate("main_window", "Choose Statistics File"))
         self.output_btn.setText(_translate("main_window", "Choose Output File"))

@@ -109,7 +109,7 @@ class Worker(QtCore.QRunnable):
         self.proxy_file = proxy_file
         self.use_proxy_file = use_proxy_file
         self.check_proxy_file = check_proxy_file
-        self.no_proxies_max = no_proxies_max
+        self.no_proxies_max = False # mandatory proxies
         self.check_top_sellers = check_top_sellers
         self.n_top_sellers = n_top_sellers
         self.name_top_seller = name_top_seller
@@ -275,16 +275,17 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         if "--no-proxies" in sys.argv:
             self.no_proxies_max = sys.argv[sys.argv.index("--no-proxies") + 1]
             self.updateConfig(4, self.no_proxies_max)
-        if self.no_proxies_max == "True":
-            self.proxy_btn.setText("Without Proxies (limited to 30/min)")
-        else:
-            self.proxy_btn.setText("Using proxies (up to 1500/min but needs loading)")
+
+        # if self.no_proxies_max == "True":
+        #     self.proxy_btn.setText("Without Proxies (limited to 30/min)")
+        # else:
+        #     self.proxy_btn.setText("Using proxies (up to 1500/min but needs loading)")
         self._createMenuBar()
         self.input_btn.clicked.connect(self.inputFileDialog)
         self.stat_btn.clicked.connect(self.stat_file_dialog)
         self.output_btn.clicked.connect(self.output_file_dialog)
         self.run_btn.clicked.connect(self.run)
-        self.proxy_btn.clicked.connect(self.proxyChoice)
+        # self.proxy_btn.clicked.connect(self.proxyChoice)
 
         self.DEBUG = False
 
@@ -307,13 +308,13 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                     self.no_proxies_max, self.use_top_sellers_chk, self.n_top_sellers, self.name_top_seller)
             )
 
-    def proxyChoice(self):
-        if self.proxy_btn.text() == "Without Proxies (limited to 30/min)":
-            self.proxy_btn.setText("Using proxies (up to 1500/min but needs loading)")
-            self.updateConfig(4, "False")
-        else:
-            self.proxy_btn.setText("Without Proxies (limited to 30/min)")
-            self.updateConfig(4, "True")
+    # def proxyChoice(self):
+    #     if self.proxy_btn.text() == "Without Proxies (limited to 30/min)":
+    #         self.proxy_btn.setText("Using proxies (up to 1500/min but needs loading)")
+    #         self.updateConfig(4, "False")
+    #     else:
+    #         self.proxy_btn.setText("Without Proxies (limited to 30/min)")
+    #         self.updateConfig(4, "True")
 
     def loadConfig(self):
         if os.path.exists('.cmscrape'):
@@ -382,7 +383,7 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
                 self.inputFolderPath = ''
                 self.outputFolderPath = ''
                 self.statFolderPath = ''
-                self.no_proxies_max = "True"
+                self.no_proxies_max = "False"
                 self.use_top_sellers_chk = False
                 self.n_top_sellers = 0
                 self.name_top_seller = ""
