@@ -2,9 +2,18 @@ import urllib.request, urllib.error, socket, requests, re, random, time
 from bs4 import BeautifulSoup
 from multiprocessing.dummy import Pool as ThreadPool
 
-WEBPAGE = 'https://www.cardmarket.com/en'
+WEBPAGE = 'https://www.cardmarket.com/'
 TIMEOUT = 10
 FINISH = False
+
+
+def make_post(url):
+    post_body = {
+        "cmd": "request.get",
+        "url": url,
+        "maxTimeout": 60000
+    }
+    return post_body
 
 
 ### TODO :
@@ -34,6 +43,26 @@ class proxyClass():
             # print("Initialize list from file for proxies with {}".format(proxy_file))
             self.initFileProxy(proxyFile)
         random.shuffle(self.proxyList)
+
+    def geonode(self):
+        self.geonode_proxies = []
+        body = make_post(
+            "https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc")
+        response = requests.post('http://localhost:8191/v1', headers={'Content-Type': 'application/json'}, json=body)
+        file_content = response.content.decode('utf-8')
+        matches = re.findall(r"\{(.*?)\}", file_content, re.DOTALL)
+        for match in matches[1:]:
+            ip = re.findall(r"ip\\\":\\\"(.*?)\\", match, re.DOTALL)[0]
+            port = re.findall(r"port\\\":\\\"(.*?)\\", match, re.DOTALL)[0]
+            type_prox = re.findall(r"protocols\\\":(.*?),\\\"region", match, re.DOTALL)[0].replace("[", "").replace("]",
+                                                                                                                    "").replace(
+                "\\", "")
+            type_proxx = re.findall(r"\"(.*?)\"", type_prox, re.DOTALL)
+            if len(type_proxx) == 1:
+                self.geonode_proxies.append([ip, port, type_proxx[0]])
+                print(f"{ip}:{port} ({type_proxx[0]})")
+
+
 
     def initFileProxy(self, proxyFile):
         with open(proxyFile, 'r') as f:
@@ -99,10 +128,10 @@ class proxyClass():
     def randomProxy(self):
         return random.choice(self.proxyList)
 
-    def checkProxy(self, pip):
+    def checkProxy(self, proxy, port=None, type=None):
         if not FINISH:
             try:
-                proxy_handler = urllib.request.ProxyHandler({'http': pip, 'https': pip})
+                proxy_handler = urllib.request.ProxyHandler({'http': proxy, 'https': proxy})
                 opener = urllib.request.build_opener(proxy_handler)
                 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
                 urllib.request.install_opener(opener)
@@ -111,7 +140,7 @@ class proxyClass():
             except:
                 # print("ERROR:", detail)
                 return -1
-            return pip
+            return proxy
 
     def checkProxies(self):
         startTime = time.time()

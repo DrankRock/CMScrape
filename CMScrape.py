@@ -284,7 +284,7 @@ class MainWindow(QtWidgets.QMainWindow, UiMainWindow):
         self.stat_btn.clicked.connect(self.stat_file_dialog)
         self.output_btn.clicked.connect(self.output_file_dialog)
         self.run_btn.clicked.connect(self.run)
-        self.proxy_btn.clicked.connect(self.proxyChoice)
+        # self.proxy_btn.clicked.connect(self.proxyChoice)
 
         self.DEBUG = False
 

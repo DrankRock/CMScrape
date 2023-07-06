@@ -210,3 +210,5 @@ Create a card scanner using OpenCV (this is a distant todo, as I have near to no
 ### Thanks to :
 The logo was created from another one created by Gregor Cresnar from the Noun Project.
 Special thanks to [Ngapi](https://github.com/Ngapi) for his help, his advices, his thorough windows testing, all the idea he gave and the time he spent telling me what was wrong and what could be enhanced while his computer crashed.
+
+The User Agent list is from [N0taN3rd](https://github.com/N0taN3rd/userAgentLists).

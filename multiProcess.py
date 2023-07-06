@@ -1,9 +1,17 @@
 import csv
 import os
+import sys
 import traceback
+import random
 from dataclasses import dataclass
 from datetime import datetime
 from multiprocessing import Pool
+
+import undetected_chromedriver as uc
+from undetected_chromedriver import Chrome, ChromeOptions
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 import findTopSellers
 import scrapers
@@ -93,6 +101,34 @@ STATUS :
  -- 429 : TOO MANY REQUESTS
 '''
 
+def read_csv_file(filename):
+    data = []
+    with open(filename, 'r') as file:
+        csv_reader = csv.reader(file)
+        for row in csv_reader:
+            # Extract the data from the first column and remove the surrounding double quotes
+            if len(row) > 0:
+                first_column_data = row[0].strip('"')
+                data.append(first_column_data)
+    return data
+
+user_agents_data = read_csv_file("chrome_useragents.csv")
+
+def get_header():
+    user_agent = random.choice(user_agents_data)    
+    return {
+        'Host': 'www.cardmarket.com',
+        'User-Agent': user_agent,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+    }
 
 def init_process():
     global session
@@ -106,12 +142,34 @@ def fun1(input_url):
         try:
             if tries >= 13:
                 raise ValueError("REQUEST NOT WORKING AFTER 70 SEC")
+            '''
             proxy = prox.randomProxy()
             proxyDict = {'http': proxy, 'https': proxy}
-            headers = random.choice(headers_list)
+            headers = get_header()
             response = session.get(input_url.url, headers=headers, proxies=proxyDict, timeout=5)
             if response.status_code == 429:
                 raise ValueError("TOO MANY REQUESTS")
+                '''
+            options = uc.ChromeOptions()
+
+            
+
+            driver = uc.Chrome(options=options)
+
+            driver.get(input_url.url)
+
+            element = WebDriverWait(driver, 70).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div[3]/div[1]/h1')))
+
+            # Print the content of the element
+            print(element.text)
+
+
+            # Note: We can't directly access HTTP status code via Selenium
+
+            # Getting the HTML content of the page
+            html_content = driver.page_source
+
+
         # text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
         except Exception as exp:
             if tries >= 14:
@@ -123,7 +181,7 @@ def fun1(input_url):
                 continue
         break
     if working:
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(html_content, 'lxml')
         list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
         sellers = []
         if check_sellers and list_scrap != -1:
@@ -140,15 +198,36 @@ def fun1_noProxies(input_url):
     working = True
     while True:
         try:
+            print("Trying ...")
             if tries >= 13:
                 raise ValueError("REQUEST NOT WORKING AFTER 70 SEC")
-            headers = random.choice(headers_list)
-            response = session.get(input_url.url, headers=headers, timeout=5)
-            if response.status_code == 429:
-                print("There are currently too many requests. Execution will pause for around 60 seconds.", end="\r")
-                raise ValueError("TOO MANY REQUESTS")
+            headers = get_header()
+            options = uc.ChromeOptions()
+            options.add_argument('--headless')
+            for key, value in get_header().items():
+                options.add_argument(f"--header={key}:{value}")
+
+            # options.add_argument('--proxy-server=%s' % proxy)
+            driver = uc.Chrome(options=options)
+
+            
+
+            driver.get(input_url.url)
+
+            element = WebDriverWait(driver, 70).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div[3]/div[1]/h1')))
+
+            # Print the content of the element
+            print(element.text)
+
+
+            # Note: We can't directly access HTTP status code via Selenium
+
+            # Getting the HTML content of the page
+            html_content = driver.page_source
+
         # text = "Status_code : {} - proxy : {} - {} tries".format(response.status_code,proxy,tries)
-        except:
+        except Exception as e:
+            print("Error : "+str(e))
             if tries >= 14:
                 working = False
                 break
@@ -158,7 +237,7 @@ def fun1_noProxies(input_url):
                 continue
         break
     if working :
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(html_content, 'lxml')
         list_scrap = scrapers.CMSoupScraper(input_url.url, soup)
         sellers = []
         if check_sellers and list_scrap != -1:
@@ -233,6 +312,8 @@ def multiMap(url_list, pool_size, out_file, stat_file, signals, no_proxies_max, 
         print("Unknown PoolType '{}' in multiMap (multiprocess.py).".format(pool_type))
         sys.exit(1)
     # print("multimap start scraping")
+    # Force single thread
+    pool_size = 1
 
     if pool_size == 1:
         for currentURL in url_list:
@@ -347,22 +428,12 @@ def multiProcess(input_file, pool_size, proxy_pool_size, n_proxy, out_file, stat
         print("ERROR : NUMBER OF THREADS CAN'T BE BELOW 1")
         sys.exit(1)
     signals.progress.emit(-1)  # change stylesheet to proxy
-
     # print("-- pool_size : {}, no_proxies_max : {}".format(pool_size, no_proxies_max)) ## DEBUG
     # Proxy scraping/checking :
     # virtually the same thing, no proxies or single thread are the same, no proxies gives more control
-    if pool_size != 1 and no_proxies_max == "False":
-        prox = proxyClass(n_proxy, proxy_pool_size, proxy_file, use_proxy_file, check_proxy_file, signals)
+    # removed if because proxies are always happening
+    # prox = proxyClass(n_proxy, proxy_pool_size, proxy_file, use_proxy_file, check_proxy_file, signals)
 
-        if proxy_file != '' and check_proxy_file == False and use_proxy_file == True:
-            currentText = currentText + "\nLaunching scraping without testing the proxies.. \n" \
-                                        "*pssst* be careful we have a badass here..\n"
-            signals.console.emit(currentText)
-        else:
-            prox.checkProxies()
-
-    currentText = "Setting up the multithreading... \n" \
-                  "(please be patient, it takes some time, and the console output isn't very smooth)"
     signals.console.emit(currentText)
     start = time.time()
 
