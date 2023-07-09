@@ -1,0 +1,7 @@
+beautifulsoup4==4.12.2
+cchardet==2.1.7
+lxml==4.7.1
+pandas==1.5.0
+PyQt5==5.15.9
+selenium==4.10.0
+undetected_chromedriver==3.5.0
