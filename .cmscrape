@@ -1,10 +1,13 @@
 'ProxiesThreads' : 50
-'Threads' : 50
-'Proxies' : 10
-'ProxyFilePath' : 
-'useProxyFile' : False
-'checkProxyFile' : False
+'Threads' : 40
+'Proxies' : 20
+'Proxy_file_path' : 
+'use_proxy_file' : False
+'check_proxy_file' : False
 'InputFolder' : /home/matvei/Documents/GitHub/CMScrape/exampleData
-'OutputFolder' : 
-'StatFolder' : 
-'noProxiesMax' : False
+'OutputFolder' : /home/matvei/Documents/GitHub/CMScrape
+'StatFolder' : /home/matvei/Documents/GitHub/CMScrape
+'no_proxies_max' : True
+'use_top_sellers_chk' : True
+'n_top_sellers' : 4
+'name_top_seller' : test.seller.csv

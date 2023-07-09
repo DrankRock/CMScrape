@@ -8,9 +8,6 @@ from functools import partial
 from multiprocessing import Pool, freeze_support
 from random import randrange
 
-from scrapeAndCheck import *
-
-
 def CMSoupScraper(url, soup):
 	def priceToFloat(price):
 		if price == "None":
