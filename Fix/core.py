@@ -20,46 +20,49 @@ total_number_of_url = 0
 output_data = []
 global _signals
 
+
 def file_to_list(filename):
-	with open(filename, 'r') as file:
-		lines = file.read().splitlines()
-	return lines
+    with open(filename, 'r') as file:
+        lines = file.read().splitlines()
+    return lines
+
 
 def load_user_agents():
-	global user_agents
-	user_agents = file_to_list("chrome_useragents.csv")
+    global user_agents
+    user_agents = file_to_list("chrome_useragents.csv")
+
 
 def get_header():
-	user_agent = random.choice(user_agents)	
-	return {
-		'Host': 'www.cardmarket.com',
-		'User-Agent': user_agent,
-		'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-	}
-
-def request(url):
-	# randomized header data for realism
-	try:
-		# options (header data, headless)
-		options = uc.ChromeOptions()
-		options.add_argument('--headless')
-		options.add_argument("user-agent="+random.choice(user_agents))
-		  
+    user_agent = random.choice(user_agents)
+    return {
+        'Host': 'www.cardmarket.com',
+        'User-Agent': user_agent,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    }
 
 
-		# driver is what's dwelling in the web
-		driver = uc.Chrome(options=options)
+def request(url, num, total):
+    # randomized header data for realism
+    try:
+        # options (header data, headless)
+        options = uc.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("user-agent=" + random.choice(user_agents))
 
-		# *drum rolls*
-		driver.get(url)
+        # driver is what's dwelling in the web
+        driver = uc.Chrome(options=options)
 
-		# wait for the title of the page to be there
-		element = WebDriverWait(driver, 70).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/div[3]/div[1]/h1')))
-		_signals.emit(element.text)
-		soup = BeautifulSoup(driver.page_source, 'lxml')
-		list_scrap = scrapers.CMSoupScraper(url, soup)
-		output_data.append(list_scrap)
-		''' # Temporarily commented, i will use the previous code for now, then switch there
+        # *drum rolls*
+        driver.get(url)
+
+        # wait for the title of the page to be there
+        element = WebDriverWait(driver, 70).until(
+            EC.presence_of_element_located((By.XPATH, '/html/body/main/div[3]/div[1]/h1')))
+        _signals.emit(element.text + "\n[" + num + "/" + total + "]")
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        list_scrap = scrapers.CMSoupScraper(url, soup)
+        output_data.append(list_scrap)
+        ''' # Temporarily commented, i will use the previous code for now, then switch there
 		# because this snippet is objectively better, shorter, clearer, and processes less info
 		dl_elements = driver.find_element(By.CSS_SELECTOR,".labeled")
 		inner_html = dl_elements.get_attribute("innerHTML")
@@ -85,59 +88,61 @@ def request(url):
 			'''
 
 
-	except Exception as exp:
-		print("An error occured while trying to scrape "+url)
-		print("Please note that this version was never tested on anything else than yugioh.")
-		print("If you want to report the error, it is : \n"+str(exp))
-	# Getting the HTML content of the page
-	#return driver
+    except Exception as exp:
+        print("An error occured while trying to scrape " + url)
+        print("Please note that this version was never tested on anything else than yugioh.")
+        print("If you want to report the error, it is : \n" + str(exp))
+
+
+# Getting the HTML content of the page
+# return driver
 
 def scrape_data(driver):
-	# dl_elements = driver.find_elements_by_xpath('//dl[@class="labeled row mx-auto no-gutters"]')
+    # dl_elements = driver.find_elements_by_xpath('//dl[@class="labeled row mx-auto no-gutters"]')
 
-	# Iterate over each dl element and find dt and dd within
-	data = []
-	for dl in dl_elements:
-		dt_elements = dl.find_elements_by_tag_name('dt')
-		dd_elements = dl.find_elements_by_tag_name('dd')
+    # Iterate over each dl element and find dt and dd within
+    data = []
+    for dl in dl_elements:
+        dt_elements = dl.find_elements_by_tag_name('dt')
+        dd_elements = dl.find_elements_by_tag_name('dd')
 
-		# Make sure we have the same number of dt and dd elements
-		assert len(dt_elements) == len(dd_elements), "Mismatch in number of dt and dd elements"
+        # Make sure we have the same number of dt and dd elements
+        assert len(dt_elements) == len(dd_elements), "Mismatch in number of dt and dd elements"
 
-		# Extract the text and create a list of [dt, dd] pairs
-		data.extend([[dt.text, dd.text] for dt, dd in zip(dt_elements, dd_elements)])
-	for elem in data:
-		print(elem[0]+" : "+elem[1])
+        # Extract the text and create a list of [dt, dd] pairs
+        data.extend([[dt.text, dd.text] for dt, dd in zip(dt_elements, dd_elements)])
+    for elem in data:
+        print(elem[0] + " : " + elem[1])
 
 
 def core_run(input_file, output_file, signals, signal_list):
-	global _signals
-	_signals = signals
-	_signals.emit("Load user agents")
-	load_user_agents()
-	_signals.emit("Read input")
-	input_data = file_to_list(input_file)
-	_signals.emit("Found "+str(len(input_data))+" lines")
+    global _signals
+    _signals = signals
+    _signals.emit("Load user agents")
+    load_user_agents()
+    _signals.emit("Read input")
+    input_data = file_to_list(input_file)
+    _signals.emit("Found " + str(len(input_data)) + " lines")
 
-	global urls_occurrences_dictionnary
-	global total_number_of_url
-	urls_occurrences_dictionnary = {}
-	total_number_of_url = len(input_data)
+    global urls_occurrences_dictionnary
+    global total_number_of_url
+    urls_occurrences_dictionnary = {}
+    total_number_of_url = len(input_data)
+    for url in input_data:
+        if not url in urls_occurrences_dictionnary:
+            urls_occurrences_dictionnary[url] = 1
+        else:
+            urls_occurrences_dictionnary[url] += 1
+    # print(urls_occurrences_dictionnary)
+    url_list = list(urls_occurrences_dictionnary.keys())
 
-	for url in input_data:
-		if not url in urls_occurrences_dictionnary:
-			urls_occurrences_dictionnary[url] = 1
-		else:
-			urls_occurrences_dictionnary[url] += 1
-		# print(urls_occurrences_dictionnary)
-	url_list = list(urls_occurrences_dictionnary.keys())
+    _signals.emit("Reduced to " + str(len(url_list)) + " single lines")
 
-	_signals.emit("Reduced to "+str(len(url_list))+" single lines")
+    i = 1
+    total = len(url_list)
+    for single_url in url_list:
+        request(single_url, i, total)
+        i += 1
 
-	for single_url in url_list :
-		request(single_url)
-
-	print ("Successfully scraped "+str(len(output_data))+" urls")
-	signal_list.emit(output_data)
-
-	
+    print("Successfully scraped " + str(len(output_data)) + " urls")
+    signal_list.emit(output_data)
