@@ -3,6 +3,8 @@ Collectibles price tracker from Cardmarket links.
 ![image](https://user-images.githubusercontent.com/32172257/213871276-f2dbf590-e3a3-4ee0-940e-5681f8f64067.png)
 
 ## /!\ CMScrape is currently on hold, as CardMarket added CloudFlare /!\
+**I'm working on some shenanigans to have it work better on windows, and finding ways to run it simply for everyone**
+
 ### Python Compatibility
 
 | Python version | Compatibility |
